@@ -1,6 +1,6 @@
 #/bin/sh
 # do NOT use this script from XBMC addons directory, it is intented for development only
-DESTDIR=~/.xbmc/addons/plugin.video.markiza.sk
+DESTDIR=~/.kodi/addons/plugin.video.markiza.sk
 
 rm -rf ${DESTDIR}
 mkdir -p ${DESTDIR}

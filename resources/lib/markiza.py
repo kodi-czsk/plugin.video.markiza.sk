@@ -55,13 +55,12 @@ class MarkizaContentProvider(ContentProvider):
         return ['categories', 'resolve']
 
     def list(self, url):
-        if url.find('#subcat#') == 0:
-            url = url[8:]
-            return self.list_subcategories(util.request(self._url(url)), url)
-        elif url.find("#date#") == 0:
-            year = int(url.split("#")[2])
-            month = int(url.split("#")[3])
-            return self.date(year, month)
+        if url.find('subcat') == 0:
+            category_id = url.split("#")[1]
+            return self.list_subcategories(util.request(self.base_url), category_id)
+        elif url.find('calendar') == 0:
+            year, month = url.split("#")[1].split("|")
+            return self.calendar(int(year), int(month))
         return self.list_content(util.request(self._url(url)))
 
     def categories(self):
@@ -73,7 +72,7 @@ class MarkizaContentProvider(ContentProvider):
         item = self.dir_item()
         item['title'] = '[B]Podľa dátumu[/B]'
         d = date.today()
-        item['url'] = "#date#%d#%d" % (d.year, d.month)
+        item['url'] = 'calendar#%d|%d' % (d.year, d.month)
         result.append(item)
         data = util.request(self.base_url)
         data = util.substr(data, CATEGORIES_START, CATEGORIES_END)
@@ -83,16 +82,16 @@ class MarkizaContentProvider(ContentProvider):
             item = self.dir_item()
             item['title'] = m.group('title')
             if m.group('type').strip() == 'has-child':
-                item['url'] = "#subcat#" + m.group('url')
+                item['url'] = "subcat#" + m.group('url')
             else:
                 item['url'] = m.group('url')
             self._filter(result, item)
         return result
 
-    def list_subcategories(self, page, category_name):
+    def list_subcategories(self, page, category_id):
         result = []
         data = util.substr(page, CATEGORIES_START, CATEGORIES_END)
-        data = util.substr(data, category_name, CATEGORIES_END)
+        data = util.substr(data, category_id, CATEGORIES_END)
         for m in re.finditer(CATEGORIES_ITER_RE, data, re.IGNORECASE | re.DOTALL):
             if not m.group('type').strip().startswith('child'):
                 break
@@ -102,14 +101,14 @@ class MarkizaContentProvider(ContentProvider):
             self._filter(result, item)
         return result
 
-    def date(self, year, month):
+    def calendar(self, year, month):
         result = []
         today = date.today()
         prev_month = month > 1 and month - 1 or 12
         prev_year = prev_month == 12 and year - 1 or year
         item = self.dir_item()
         item['type'] = 'prev'
-        item['url'] = "#date#%d#%d" % (prev_year, prev_month)
+        item['url'] = 'calendar#%d|%d' % (prev_year, prev_month)
         result.append(item)
         for d in calendar.LocaleTextCalendar().itermonthdates(year, month):
             if d.month != month:
