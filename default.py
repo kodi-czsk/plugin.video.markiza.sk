@@ -37,6 +37,12 @@ settings = {'downloads':__addon__.getSetting('downloads'), 'quality':__addon__.g
 
 class MarkizaXBMCContentProvider(xbmcprovider.XBMCMultiResolverContentProvider):
 
+    def render_video(self, item):
+        date = item.get('date')
+        if date:
+            item['title'] = '%s - %s' %(item['title'], date)
+        super(MarkizaXBMCContentProvider, self).render_video(item)
+
     def play(self, item):
         stream = self.resolve(item['url'])
         print type(stream)
@@ -56,7 +62,6 @@ class MarkizaXBMCContentProvider(xbmcprovider.XBMCMultiResolverContentProvider):
             print 'Sending %s to player' % stream['url']
             li = xbmcgui.ListItem(path=stream['url'], iconImage='DefaulVideo.png')
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, li)
-            xbmcutil.load_subtitles(stream['subs'])
 
     def resolve(self, url):
         def select_cb(resolved):
