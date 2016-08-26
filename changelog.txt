@@ -1,3 +1,5 @@
+[B]1.0.8:[/B]
+- oprava po redizajne stranok
 [B]1.0.7:[/B]
 - oprava prehravania
 [B]1.0.6:[/B]
