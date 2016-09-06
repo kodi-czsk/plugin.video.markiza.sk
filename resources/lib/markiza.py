@@ -122,10 +122,9 @@ class MarkizaContentProvider(ContentProvider):
                     item['countdown'] = countdown_match.group(1).strip()
                 time_match = re.search(r'<div class="time">([^<]+)', row)
                 if time_match:
-                    length_str, date_str, shown_str = time_match.group(1).split('&bull;')
+                    length_str, date_str = time_match.group(1).split('&bull;')
                     item['length'] = length_str.strip()
                     item['date'] = date_str.strip()
-                    item['shown'] = shown_str.strip()
                 result.append(item)
         return result
 
