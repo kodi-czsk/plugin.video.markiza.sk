@@ -1,3 +1,5 @@
+[B]1.1.0:[/B]
+- oprava listovania na starsej verzii python
 [B]1.0.9:[/B]
 - oprava listovania epizod
 [B]1.0.8:[/B]
