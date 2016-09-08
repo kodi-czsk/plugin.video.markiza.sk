@@ -43,7 +43,8 @@ class MarkizaContentProvider(ContentProvider):
         self.info('list - %s'% url )
         result = []
         purl = urlparse(url)
-        url = url[:url.find("#")]
+        if url.find("#") != -1:
+            url = url[:url.find("#")]
         if purl.path == '/video/':
             if purl.fragment == 'az':
                 self.info('list - detected az url')
