@@ -62,11 +62,9 @@ class MarkizaContentProvider(ContentProvider):
 
     def categories(self):
         result = []
-        # TODO
-        #result.append(self.dir_item(self.base_url + 'video/#latest', type='new'))
-        #result.append(self.dir_item(self.base_url + 'video/#top', type='top'))
-        #result.append(self.dir_item('A-Z', self.base_url+ 'video/#az'))
-        result += self.list_base(self.base_url)
+        result.append(self.dir_item(url=self.base_url + 'najnovsie', type='new'))
+        result.append(self.dir_item(url=self.base_url + 'najsledovanejsie', type='top'))
+        result.append(self.dir_item('A-Z', self.base_url + 'video/#az'))
         return result
 
     def list_base(self, url, az=True, top=True):
