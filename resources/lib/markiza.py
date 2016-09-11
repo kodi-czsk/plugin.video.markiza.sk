@@ -132,12 +132,22 @@ class MarkizaContentProvider(ContentProvider):
         result = []
         item = item.copy()
         video_id = urlparse(item['url']).path.split('/')[-1].split('_')[0]
-        videodata = util.json.loads(util.request('http://www.markiza.sk/json/video.json?id=' + video_id))
-        for v in videodata['playlist']:
+        videodata = util.json.loads(util.request('http://videoarchiv.markiza.sk/json/video_jwplayer7.json?is_web=1&id=' + video_id))
+        details = videodata['details']
+        playlist = videodata['playlist']
+        sources = [p['sources'][0]['file'] for p in playlist]
+        add_idx = [n for n,s in enumerate(sources) if s not in sources[n+1:]]
+        playlist = [v for n,v in enumerate(playlist) if n in add_idx]
+        #print util.json.dumps(playlist, indent=True)
+        for v in playlist:
             item = self.video_item()
-            item['title'] = v['title']
+            item['title'] = v['title'] or details['name']
+            item['date'] = details['date']
+            item['lenght'] = details['duration']
+            item['url'] = v['sources'][0]['file']
             item['surl'] = v['title']
-            item['url'] = "%s/%s" % (v['baseUrl'].replace(':1935',''), v['url'].replace('.f4m', '.m3u8'))
+            item['img'] = v['image']
+            item['plot'] = v['description']
             result.append(item)
         if len(result) > 0 and select_cb:
             return select_cb(result)
