@@ -37,7 +37,7 @@ class MarkizaContentProvider(ContentProvider):
         urllib2.install_opener(opener)
 
     def capabilities(self):
-        return ['categories', 'resolve']
+        return ['categories', 'resolve', '!download']
 
     def list(self, url):
         self.info('list - %s'% url )
