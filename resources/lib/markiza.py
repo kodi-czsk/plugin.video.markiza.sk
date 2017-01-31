@@ -98,11 +98,13 @@ class MarkizaContentProvider(ContentProvider):
         if episodes:
             row_list = []
             row_pattern = re.compile(r'<div class="item row ">(.+?)</div>\s+</div>', re.DOTALL)
-            # latest episode
-            episodes_data = util.substr(data, '<section class="col-md-12 info_new row">', '</section>')
-            row_match = row_pattern.search(episodes_data)
-            if row_match:
-                row_list.append(row_match.group(1))
+            purl = urlparse(url)
+            if not 'page=' in purl.query:
+                # latest episode
+                episodes_data = util.substr(data, '<section class="col-md-12 info_new row">', '</section>')
+                row_match = row_pattern.search(episodes_data)
+                if row_match:
+                    row_list.append(row_match.group(1))
             # other episodes
             episodes_data = util.substr(data, '<section class="col-md-12 article-view homepage">','</section>')
             row_list += row_pattern.findall(episodes_data)
@@ -126,6 +128,9 @@ class MarkizaContentProvider(ContentProvider):
                     item['length'] = length_str.strip()
                     item['date'] = date_str.strip()
                 result.append(item)
+            next_match = re.search(r'<li class="pager-next"><a href="([^"]+)', data)
+            if next_match:
+                result.append(self.dir_item(url = self._url(next_match.group(1)), type='next'))
         return result
 
     def resolve(self, item, captcha_cb=None, select_cb=None):
