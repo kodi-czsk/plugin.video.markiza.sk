@@ -137,7 +137,7 @@ class MarkizaContentProvider(ContentProvider):
         result = []
         item = item.copy()
         video_id = urlparse(item['url']).path.split('/')[-1].split('_')[0]
-        videodata = util.json.loads(util.request('http://videoarchiv.markiza.sk/json/video_jwplayer7.json?is_web=1&id=' + video_id))
+        videodata = util.json.loads(util.request('http://videoarchiv.markiza.sk/json/video_jwplayer7.json?is_web=1&noads=1&nomidads=1&nopreads=1&nopostads=1&id=' + video_id))
         details = videodata['details']
         playlist = videodata['playlist']
         sources = [p['sources'][0]['file'] for p in playlist]
