@@ -1,3 +1,5 @@
+[B]1.1.6:[/B]
+- zobrazovanie trvania videi
 [B]1.1.5:[/B]
 - Nová ikona
 [B]1.1.4:[/B]
