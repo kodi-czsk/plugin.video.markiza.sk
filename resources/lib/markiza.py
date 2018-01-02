@@ -83,6 +83,10 @@ class MarkizaContentProvider(ContentProvider):
                     result.append(item)
         return result
 
+    def hhmmss_to_s(self, t):
+        h, m, s = t.split(':')
+        return int(h) * 3600 + int(m) * 60 + int(s)
+
     def list_show(self, url, categories=True, episodes=True):
         result = []
         data = util.request(url)
@@ -125,7 +129,7 @@ class MarkizaContentProvider(ContentProvider):
                 time_match = re.search(r'<div class="time">([^<]+)', row)
                 if time_match:
                     length_str, date_str = time_match.group(1).split('&bull;')
-                    item['length'] = length_str.strip()
+                    item['duration'] = self.hhmmss_to_s(length_str.strip())
                     item['date'] = date_str.strip()
                 result.append(item)
             next_match = re.search(r'<li class="pager-next"><a href="([^"]+)', data)
@@ -148,7 +152,7 @@ class MarkizaContentProvider(ContentProvider):
             item = self.video_item()
             item['title'] = v['title'] or details['name']
             item['date'] = details['date']
-            item['lenght'] = details['duration']
+            item['duration'] = details['duration']
             item['url'] = v['sources'][0]['file']
             item['surl'] = v['title']
             item['img'] = v['image']
