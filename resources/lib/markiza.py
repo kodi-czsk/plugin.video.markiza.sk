@@ -128,9 +128,10 @@ class MarkizaContentProvider(ContentProvider):
                     item['countdown'] = countdown_match.group(1).strip()
                 time_match = re.search(r'<div class="time">([^<]+)', row)
                 if time_match:
-                    length_str, date_str = time_match.group(1).split('&bull;')
-                    item['duration'] = self.hhmmss_to_s(length_str.strip())
-                    item['date'] = date_str.strip()
+                    if '&bull;' in time_match.group(1):
+                        length_str, date_str = time_match.group(1).split('&bull;')
+                        item['duration'] = self.hhmmss_to_s(length_str.strip())
+                        item['date'] = date_str.strip()
                 result.append(item)
             next_match = re.search(r'<li class="pager-next"><a href="([^"]+)', data)
             if next_match:
