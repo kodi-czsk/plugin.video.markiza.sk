@@ -26,8 +26,12 @@ import urllib2
 from urlparse import urlparse
 
 import util
+import xbmcaddon
 from provider import ContentProvider
 
+__scriptid__ = 'plugin.video.markiza.sk'
+__addon__ = xbmcaddon.Addon(id=__scriptid__)
+__settings__ = __addon__.getSetting
 
 class MarkizaContentProvider(ContentProvider):
 
@@ -58,6 +62,8 @@ class MarkizaContentProvider(ContentProvider):
             else:
                 self.info('list - detected episodes url')
                 result += self.list_show(url, episodes=True, categories=False)
+        if __settings__('sort'):
+            result.sort(key=lambda n: n['title'])
         return result
 
     def categories(self):
@@ -77,6 +83,9 @@ class MarkizaContentProvider(ContentProvider):
             if not az_json_data:
                 self.error('list_base - no az data found!')
             else:
+                shows = util.json.loads(az_json_data.group(1))
+                if __settings__('sort'):
+                    shows.sort(key=lambda n: n['name'])
                 for i in util.json.loads(az_json_data.group(1)):
                     item = self.dir_item(i['title'], i['url']+ "#categories")
                     item['img'] = i['image']
