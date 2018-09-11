@@ -36,7 +36,7 @@ __settings__ = __addon__.getSetting
 class MarkizaContentProvider(ContentProvider):
 
     def __init__(self, username=None, password=None, filter=None, tmp_dir='/tmp'):
-        ContentProvider.__init__(self, 'videoarchiv.markiza.sk', 'http://videoarchiv.markiza.sk', username, password, filter, tmp_dir)
+        ContentProvider.__init__(self, 'videoarchiv.markiza.sk', 'http://oldvideoarchiv.markiza.sk', username, password, filter, tmp_dir)
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookielib.LWPCookieJar()))
         urllib2.install_opener(opener)
 
@@ -151,7 +151,7 @@ class MarkizaContentProvider(ContentProvider):
         result = []
         item = item.copy()
         video_id = urlparse(item['url']).path.split('/')[-1].split('_')[0]
-        videodata = util.json.loads(util.request('http://videoarchiv.markiza.sk/json/video_jwplayer7.json?is_web=1&noads=1&nomidads=1&nopreads=1&nopostads=1&id=' + video_id))
+        videodata = util.json.loads(util.request('http://oldvideoarchiv.markiza.sk/json/video_jwplayer7.json?is_web=1&noads=1&nomidads=1&nopreads=1&nopostads=1&id=' + video_id))
         details = videodata['details']
         playlist = videodata['playlist']
         sources = [p['sources'][0]['file'] for p in playlist]
