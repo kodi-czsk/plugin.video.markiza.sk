@@ -158,16 +158,19 @@ class MarkizaContentProvider(ContentProvider):
         add_idx = [n for n,s in enumerate(sources) if s not in sources[n+1:]]
         playlist = [v for n,v in enumerate(playlist) if n in add_idx]
         #print util.json.dumps(playlist, indent=True)
-        for v in playlist:
-            item = self.video_item()
-            item['title'] = v['title'] or details['name']
-            item['date'] = details['date']
-            item['duration'] = details['duration']
-            item['url'] = v['sources'][0]['file']
-            item['surl'] = v['title']
-            item['img'] = v['image']
-            item['plot'] = v['description']
-            result.append(item)
+        for pl in playlist:
+            manifestUrl = "%s"%(pl['sources'][0]['file'])
+            manifest = util.request(manifestUrl)
+            itemTitle = "%s"%pl['title']
+            for m in re.finditer('#EXT-X-STREAM-INF:BANDWIDTH=(?P<bandwidth>\d+),RESOLUTION=(?P<resolution>\d+x\d+)\s(?P<chunklist>[^\s]+)', manifest, re.DOTALL):
+                item = self.video_item()
+                item['title']= itemTitle
+                item['bandwidth'] = int("%s"%m.group('bandwidth'))
+                item['quality'] = m.group('resolution')
+                item['resolveTitle'] = "%s - %s"%(item['quality'], itemTitle)
+                item['url'] = manifestUrl.replace("manifest.m3u8", m.group('chunklist'))
+                result.append(item)
+            result.sort(key=lambda x: x['bandwidth'], reverse=True)
         if len(result) > 0 and select_cb:
             return select_cb(result)
         return result
