@@ -117,13 +117,10 @@ def EPISODES(url,page):
         if section.div.h3.getText(" ").encode('utf-8') == 'Zo zákulisia':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
-                title = 'Zo zákulisia  - ' + article.a['title'].encode('utf-8')
+                title = 'Zo zákulisia - ' + article.a['title'].encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
                 addDir(title,url,3,thumb,1)
                 
-   
-
-   
 def VIDEOLINK(url,name):
     print 'VIDEOLINK *********************************' + str(url)
 
