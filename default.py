@@ -2,6 +2,7 @@
 import urllib2,urllib,re,os,string,time,base64,datetime
 from urlparse import urlparse
 import aes
+import json
 try:
     import hashlib
 except ImportError:
@@ -35,21 +36,7 @@ def OBSAH():
     addDir('Televízne noviny','http://videoarchiv.markiza.sk/video/televizne-noviny',2,icon,1)
     addDir('TOP relácie','http://videoarchiv.markiza.sk',9,icon,1)
     addDir('Najnovšie epizódy','http://videoarchiv.markiza.sk',8,icon,1)
-    addDir('Najsledovanejšie','http://videoarchiv.markiza.sk',6,icon,1)
     addDir('Odporúčame','http://videoarchiv.markiza.sk',7,icon,1)
-
-def HOME_NEJSLEDOVANEJSI(url,page):
-    doc = read_page(url)
-
-    for section in doc.findAll('section', 'b-main-section b-section-articles b-section-articles-primary my-5'):
-        if section.div.h3.getText(" ").encode('utf-8') == 'Najsledovanejšie':
-            for article in section.findAll('article'):
-                url = article.a['href'].encode('utf-8')
-                title1 = article.h3.getText(" ").encode('utf-8')
-                title2 = article.find('span', 'e-text').getText(" ").encode('utf-8')
-                title = str(title1) + ' - ' + str(title2)
-                thumb = article.a.div.img['data-original'].encode('utf-8')
-                addDir(title,url,3,thumb,1)
 
 def HOME_DOPORUCUJEME(url,page):
     doc = read_page(url)
@@ -104,16 +91,19 @@ def EPISODES(url,page):
 
     for article in doc.findAll('article', 'b-article b-article-text b-article-inline'):
         url = article.a['href'].encode('utf-8')
-        title = article.a['title'].encode('utf-8')
+        title = article.a.find('div', {'class': 'e-date'}).getText(" ").encode('utf-8')
         thumb = article.a.div.img['data-original'].encode('utf-8')
 #        VIDEOLINK(url,title);
         addDir(title,url,3,thumb,1)
 
-    for section in doc.findAll('section', 'b-main-section b-section-articles my-5'):
+    for section in doc.findAll('section', 'b-main-section'):
         if section.div.h3.getText(" ").encode('utf-8') == 'Celé epizódy':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
-                title = 'Celé epizódy - ' + article.a['title'].encode('utf-8')
+                if (article.a.find('div', {'class': 'e-date'})):
+                   title = 'Celé epizódy - ' + article.a.find('div', {'class': 'e-date'}).getText(" ").encode('utf-8') 
+                else:
+                   title = 'Celé epizódy - ' + article.a['title'].encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
                 addDir(title,url,3,thumb,1)
 
@@ -122,15 +112,18 @@ def EPISODES(url,page):
                 url = article.a['href'].encode('utf-8')
                 title = 'Mohlo by sa vám páčiť - ' + article.a['title'].encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
-                addDir(title,url,3,thumb,1)        
+                addDir(title,url,3,thumb,1)
 
         if section.div.h3.getText(" ").encode('utf-8') == 'Zo zákulisia':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
-                title = 'Zo zákulisia - ' + article.a['title'].encode('utf-8')
+                title = 'Zo zákulisia  - ' + article.a['title'].encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
                 addDir(title,url,3,thumb,1)
+                
+   
 
+   
 def VIDEOLINK(url,name):
     print 'VIDEOLINK *********************************' + str(url)
 
@@ -146,30 +139,50 @@ def VIDEOLINK(url,name):
 
     httpdata   = httpdata.replace("\r","").replace("\n","").replace("\t","")
 
-    thumb = re.compile('<meta property="og:image" content="(.+?)">').findall(httpdata)
-    thumb = thumb[0] if len(thumb) > 0 else ''
-
-    desc = re.compile('<meta name="description" content="(.+?)">').findall(httpdata)
-    desc = desc[0] if len(desc) > 0 else ''
-
-    name = re.compile('<meta property="og:title" content="(.+?)">').findall(httpdata)
-    name = name[0] if len(name) > 0 else '?'
-
-    renditions = re.compile('renditions: \[(.+?)\]').findall(httpdata)
-    if len(renditions) > 0:
-      renditions = re.compile('[\'\:](.+?)[\'\:]').findall(renditions[0])
-
-    bitrates = re.compile('src = {(.+?):(.+?)}').findall(httpdata);
-    if len(bitrates) > 0:
-      urls = re.compile('[\'\"](.+?)[\'\"]').findall(bitrates[0][1])
-
-      for num, url in enumerate(urls):
-        if num < len(renditions):
-          addLink(renditions[num],url,thumb,desc)
-        else:
+    if (re.compile('src = {\s*}').findall(httpdata)):
+       url = re.compile('relatedLoc: ([\'\"](.+?)[\'\"])').findall(httpdata)
+       url = url[0][0] if len(url) > 0 else ''
+       url=url.replace("\/","/").strip("\"")
+       
+       req = urllib2.Request(url)
+       req.add_header('User-Agent', _UserAgent_)
+       response = urllib2.urlopen(req)
+       httpdata = response.read()
+       response.close()
+       
+       decoded=json.loads(httpdata)
+       for chapter in decoded["playlist"]:
+          name=chapter["contentTitle"]
+          url=chapter["bitrates"]["hls"]
+          thumb=chapter["thumbnail"]
+          desc=chapter["contentTitle"]
           addLink(name,url,thumb,desc)
     else:
-      xbmcgui.Dialog().ok('Chyba', 'Video nejde přehrát', '', '')
+
+       thumb = re.compile('<meta property="og:image" content="(.+?)">').findall(httpdata)
+       thumb = thumb[0] if len(thumb) > 0 else ''
+
+       desc = re.compile('<meta name="description" content="(.+?)">').findall(httpdata)
+       desc = desc[0] if len(desc) > 0 else ''
+
+       name = re.compile('<meta property="og:title" content="(.+?)">').findall(httpdata)
+       name = name[0] if len(name) > 0 else '?'
+
+       renditions = re.compile('renditions: \[(.+?)\]').findall(httpdata)
+       if len(renditions) > 0:
+         renditions = re.compile('[\'\:](.+?)[\'\:]').findall(renditions[0])
+
+       bitrates = re.compile('src = {(.+?):(.+?)}').findall(httpdata);
+       if len(bitrates) > 0:
+         urls = re.compile('[\'\"](.+?)[\'\"]').findall(bitrates[0][1])
+
+         for num, url in enumerate(urls):
+           if num < len(renditions):
+             addLink(renditions[num],url,thumb,desc)
+           else:
+             addLink(name,url,thumb,desc)
+       else:
+         xbmcgui.Dialog().ok('Chyba', 'Video nejde přehrát', '', '')
 
 def get_params():
         param=[]
@@ -239,9 +252,6 @@ if mode==None or url==None or len(url)<1:
         STATS("OBSAH", "Function")
         OBSAH()
 
-elif mode==6:
-        STATS("HOME_NEJSLEDOVANEJSI", "Function")
-        HOME_NEJSLEDOVANEJSI(url,page)
 
 elif mode==7:
         STATS("HOME_DOPORUCUJEME", "Function")
