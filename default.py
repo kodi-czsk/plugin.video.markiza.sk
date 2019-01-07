@@ -212,7 +212,7 @@ def addLink(name,url,iconimage,popis):
 
 def addDir(name,url,mode,iconimage,page):
         if ("voyo.markiza.sk" in url):
-           continue 
+           return False 
         u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&page="+str(page)
         ok=True
         liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
