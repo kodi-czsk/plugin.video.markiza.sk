@@ -126,6 +126,9 @@ def VIDEOLINK(url,name):
 
     doc = read_page(url)
     main = doc.find('main')
+    if (not main.find('iframe')):
+       xbmcgui.Dialog().ok('Chyba', 'Platnost tohoto videa už vypršala', '', '')
+       return False
     url = main.find('iframe')['src']
 
     req = urllib2.Request(url)
@@ -174,6 +177,8 @@ def VIDEOLINK(url,name):
          urls = re.compile('[\'\"](.+?)[\'\"]').findall(bitrates[0][1])
 
          for num, url in enumerate(urls):
+           if ("voyo.markiza.sk" in url):
+             continue 
            if num < len(renditions):
              addLink(renditions[num],url,thumb,desc)
            else:
