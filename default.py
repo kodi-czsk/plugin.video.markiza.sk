@@ -177,8 +177,6 @@ def VIDEOLINK(url,name):
          urls = re.compile('[\'\"](.+?)[\'\"]').findall(bitrates[0][1])
 
          for num, url in enumerate(urls):
-           if ("voyo.markiza.sk" in url):
-             continue 
            if num < len(renditions):
              addLink(renditions[num],url,thumb,desc)
            else:
@@ -213,6 +211,8 @@ def addLink(name,url,iconimage,popis):
         return ok
 
 def addDir(name,url,mode,iconimage,page):
+        if ("voyo.markiza.sk" in url):
+           continue 
         u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&page="+str(page)
         ok=True
         liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
