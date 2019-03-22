@@ -153,7 +153,7 @@ def VIDEOLINK(url,name):
        decoded=json.loads(httpdata)
        for chapter in decoded["playlist"]:
           name=chapter["contentTitle"]
-          url=chapter["bitrates"]["hls"]
+          url=chapter["src"]["hls"]
           thumb=chapter["thumbnail"]
           desc=chapter["contentTitle"]
           addLink(name,url,thumb,desc)
