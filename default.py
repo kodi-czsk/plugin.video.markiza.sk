@@ -126,6 +126,9 @@ def VIDEOLINK(url,name):
 
     doc = read_page(url)
     main = doc.find('main')
+    if (not main.find('iframe')):
+       xbmcgui.Dialog().ok('Chyba', 'Platnost tohoto videa už vypršala', '', '')
+       return False
     url = main.find('iframe')['src']
 
     req = urllib2.Request(url)
@@ -150,7 +153,7 @@ def VIDEOLINK(url,name):
        decoded=json.loads(httpdata)
        for chapter in decoded["playlist"]:
           name=chapter["contentTitle"]
-          url=chapter["bitrates"]["hls"]
+          url=chapter["src"]["hls"]
           thumb=chapter["thumbnail"]
           desc=chapter["contentTitle"]
           addLink(name,url,thumb,desc)
@@ -208,6 +211,8 @@ def addLink(name,url,iconimage,popis):
         return ok
 
 def addDir(name,url,mode,iconimage,page):
+        if ("voyo.markiza.sk" in url):
+           return False 
         u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&page="+str(page)
         ok=True
         liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
