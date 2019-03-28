@@ -1,18 +1,10 @@
 # -*- coding: utf-8 -*-
-import urllib2,urllib,re,os,string,time,base64,datetime
-from urlparse import urlparse
-import aes
+import urllib2,urllib,re,os
 import json
-try:
-    import hashlib
-except ImportError:
-    import md5
-
 from parseutils import *
 from stats import *
 import xbmcplugin,xbmcgui,xbmcaddon
 __baseurl__ = 'http://videoarchiv.markiza.sk'
-__dmdbase__ = 'http://iamm.uvadi.cz/xbmc/voyo/'
 _UserAgent_ = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0'
 addon = xbmcaddon.Addon('plugin.video.markiza.sk')
 profile = xbmc.translatePath(addon.getAddonInfo('profile'))
@@ -36,7 +28,19 @@ def OBSAH():
     addDir('Televízne noviny','http://videoarchiv.markiza.sk/video/televizne-noviny',2,icon,1)
     addDir('TOP relácie','http://videoarchiv.markiza.sk',9,icon,1)
     addDir('Najnovšie epizódy','http://videoarchiv.markiza.sk',8,icon,1)
+    addDir('Najsledovanejšie','http://videoarchiv.markiza.sk',6,icon,1)
     addDir('Odporúčame','http://videoarchiv.markiza.sk',7,icon,1)
+
+def HOME_NEJSLEDOVANEJSI(url,page):
+    doc = read_page(url)
+
+    for section in doc.findAll('section', 'b-main-section b-section-articles b-section-articles-primary my-5'):
+        if section.div.h3.getText(" ").encode('utf-8') == 'Najsledovanejšie':
+            for article in section.findAll('article'):
+                url = article.a['href'].encode('utf-8')
+                title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
+                thumb = article.a.div.img['data-original'].encode('utf-8')
+                addDir(title,url,3,thumb,1)
 
 def HOME_DOPORUCUJEME(url,page):
     doc = read_page(url)
@@ -45,9 +49,7 @@ def HOME_DOPORUCUJEME(url,page):
         if section.div.h3.getText(" ").encode('utf-8') == 'Odporúčame':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
-                title1 = article.h3.getText(" ").encode('utf-8')
-                title2 = article.find('span', 'e-text').getText(" ").encode('utf-8')
-                title = str(title1) + ' - ' + str(title2)
+                title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
                 addDir(title,url,3,thumb,1)
 
@@ -58,9 +60,7 @@ def HOME_POSLEDNI(url,page):
         if section.div.h3.getText(" ").encode('utf-8') == 'Najnovšie epizódy':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
-                title1 = article.h3.getText(" ").encode('utf-8')
-                title2 = article.find('span', 'e-text').getText(" ").encode('utf-8')
-                title = str(title1) + ' - ' + str(title2)
+                title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
                 addDir(title,url,3,thumb,1)
 
@@ -91,7 +91,7 @@ def EPISODES(url,page):
 
     for article in doc.findAll('article', 'b-article b-article-text b-article-inline'):
         url = article.a['href'].encode('utf-8')
-        title = article.a.find('div', {'class': 'e-date'}).getText(" ").encode('utf-8')
+        title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8') 
         thumb = article.a.div.img['data-original'].encode('utf-8')
 #        VIDEOLINK(url,title);
         addDir(title,url,3,thumb,1)
@@ -101,7 +101,7 @@ def EPISODES(url,page):
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
                 if (article.a.find('div', {'class': 'e-date'})):
-                   title = 'Celé epizódy - ' + article.a.find('div', {'class': 'e-date'}).getText(" ").encode('utf-8') 
+                   title = 'Celé epizódy - ' + article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
                 else:
                    title = 'Celé epizódy - ' + article.a['title'].encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
@@ -110,7 +110,7 @@ def EPISODES(url,page):
         if section.div.h3.getText(" ").encode('utf-8') == 'Mohlo by sa vám páčiť':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
-                title = 'Mohlo by sa vám páčiť - ' + article.a['title'].encode('utf-8')
+                title = 'Mohlo by sa vám páčiť - ' + article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8') 
                 thumb = article.a.div.img['data-original'].encode('utf-8')
                 addDir(title,url,3,thumb,1)
 
@@ -168,21 +168,9 @@ def VIDEOLINK(url,name):
        name = re.compile('<meta property="og:title" content="(.+?)">').findall(httpdata)
        name = name[0] if len(name) > 0 else '?'
 
-       renditions = re.compile('renditions: \[(.+?)\]').findall(httpdata)
-       if len(renditions) > 0:
-         renditions = re.compile('[\'\:](.+?)[\'\:]').findall(renditions[0])
+       url = re.compile('src = {\s*\"hls\": [\'\"](.+?)[\'\"]\s*};').findall(httpdata)[0]
 
-       bitrates = re.compile('src = {(.+?):(.+?)}').findall(httpdata);
-       if len(bitrates) > 0:
-         urls = re.compile('[\'\"](.+?)[\'\"]').findall(bitrates[0][1])
-
-         for num, url in enumerate(urls):
-           if num < len(renditions):
-             addLink(renditions[num],url,thumb,desc)
-           else:
-             addLink(name,url,thumb,desc)
-       else:
-         xbmcgui.Dialog().ok('Chyba', 'Video nejde přehrát', '', '')
+       addLink(name,url,thumb,desc)
 
 def get_params():
         param=[]
@@ -254,6 +242,9 @@ if mode==None or url==None or len(url)<1:
         STATS("OBSAH", "Function")
         OBSAH()
 
+elif mode==6:
+        STATS("HOME_NEJSLEDOVANEJSI", "Function")
+        HOME_NEJSLEDOVANEJSI(url,page)
 
 elif mode==7:
         STATS("HOME_DOPORUCUJEME", "Function")
