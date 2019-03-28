@@ -38,7 +38,7 @@ def HOME_NEJSLEDOVANEJSI(url,page):
         if section.div.h3.getText(" ").encode('utf-8') == 'Najsledovanejšie':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
-                title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
+                title = article.a.find('div', {'class': 'e-text-row'}).getText(" ").encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
                 addDir(title,url,3,thumb,1)
 
@@ -60,7 +60,7 @@ def HOME_POSLEDNI(url,page):
         if section.div.h3.getText(" ").encode('utf-8') == 'Najnovšie epizódy':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
-                title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
+                title = article.a.find('div', {'class': 'e-text-row'}).getText(" ").encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
                 addDir(title,url,3,thumb,1)
 
