@@ -91,7 +91,7 @@ def EPISODES(url,page):
 
     for article in doc.findAll('article', 'b-article b-article-text b-article-inline'):
         url = article.a['href'].encode('utf-8')
-        title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8') 
+        title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8').strip() 
         thumb = article.a.div.img['data-original'].encode('utf-8')
 #        VIDEOLINK(url,title);
         addDir(title,url,3,thumb,1)
