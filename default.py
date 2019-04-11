@@ -138,11 +138,24 @@ def VIDEOLINK(url,name):
     response.close()
 
     httpdata   = httpdata.replace("\r","").replace("\n","").replace("\t","")
+    url = re.compile('src = {\s*\"hls\": [\'\"](.+?)[\'\"]\s*};').findall(httpdata)
+    if (url):
+       url=url[0]
 
-    if (re.compile('src = {\s*}').findall(httpdata)):
-       url = re.compile('relatedLoc: ([\'\"](.+?)[\'\"])').findall(httpdata)
-       url = url[0][0] if len(url) > 0 else ''
-       url=url.replace("\/","/").strip("\"")
+       thumb = re.compile('<meta property="og:image" content="(.+?)">').findall(httpdata)
+       thumb = thumb[0] if len(thumb) > 0 else ''
+
+       desc = re.compile('<meta name="description" content="(.+?)">').findall(httpdata)
+       desc = desc[0] if len(desc) > 0 else ''
+
+       name = re.compile('<meta property="og:title" content="(.+?)">').findall(httpdata)
+       name = name[0] if len(name) > 0 else '?'
+    
+       addLink(name,url,thumb,desc)
+
+    else:
+       url = re.compile('relatedLoc: [\'\"](.+?)[\'\"]').findall(httpdata)[0]
+       url = url.replace("\/","/")
        
        req = urllib2.Request(url)
        req.add_header('User-Agent', _UserAgent_)
@@ -157,20 +170,6 @@ def VIDEOLINK(url,name):
           thumb=chapter["thumbnail"]
           desc=chapter["contentTitle"]
           addLink(name,url,thumb,desc)
-    else:
-
-       thumb = re.compile('<meta property="og:image" content="(.+?)">').findall(httpdata)
-       thumb = thumb[0] if len(thumb) > 0 else ''
-
-       desc = re.compile('<meta name="description" content="(.+?)">').findall(httpdata)
-       desc = desc[0] if len(desc) > 0 else ''
-
-       name = re.compile('<meta property="og:title" content="(.+?)">').findall(httpdata)
-       name = name[0] if len(name) > 0 else '?'
-
-       url = re.compile('src = {\s*\"hls\": [\'\"](.+?)[\'\"]\s*};').findall(httpdata)[0]
-
-       addLink(name,url,thumb,desc)
 
 def get_params():
         param=[]
