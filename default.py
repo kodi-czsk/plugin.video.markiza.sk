@@ -137,7 +137,7 @@ def VIDEOLINK(url,name):
     httpdata = response.read()
     response.close()
 
-    httpdata   = httpdata.replace("\r","").replace("\n","").replace("\t","")
+    httpdata = httpdata.replace("\r","").replace("\n","").replace("\t","")
     url = re.compile('src = {\s*\"hls\": [\'\"](.+?)[\'\"]\s*};').findall(httpdata)
     if (url):
        url=url[0]
@@ -150,8 +150,19 @@ def VIDEOLINK(url,name):
 
        name = re.compile('<meta property="og:title" content="(.+?)">').findall(httpdata)
        name = name[0] if len(name) > 0 else '?'
-    
-       addLink(name,url,thumb,desc)
+
+       req = urllib2.Request(url)
+       req.add_header('User-Agent', _UserAgent_)
+       response = urllib2.urlopen(req)
+       httpdata = response.read()
+       response.close()
+
+       streams = re.compile('RESOLUTION=\d+x(\d+).*\n([^#].+)').findall(httpdata) 
+       url = url.rsplit('/', 1)[0] + '/'
+       streams.sort(reverse=True)
+       for (bitrate, stream) in streams:
+           bitrate=' [' + bitrate + 'p]'
+           addLink(name + bitrate,url + stream,thumb,desc)
 
     else:
        url = re.compile('relatedLoc: [\'\"](.+?)[\'\"]').findall(httpdata)[0]
