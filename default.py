@@ -159,7 +159,7 @@ def VIDEOLINK(url,name):
 
        streams = re.compile('RESOLUTION=\d+x(\d+).*\n([^#].+)').findall(httpdata) 
        url = url.rsplit('/', 1)[0] + '/'
-       streams.sort(reverse=True)
+       streams.sort(key=lambda x: int(x[0]),reverse=True)
        for (bitrate, stream) in streams:
            bitrate=' [' + bitrate + 'p]'
            addLink(name + bitrate,url + stream,thumb,desc)
