@@ -23,6 +23,17 @@ __language__   = __addon__.getLocalizedString
 def log(msg):
     xbmc.log(("### [%s] - %s" % (__addonname__.decode('utf-8'), msg.decode('utf-8'))).encode('utf-8'), level=xbmc.LOGDEBUG)
 
+def fetchUrl(url):
+    log("fetchUrl " + url)
+    httpdata = ''	
+    req = urllib2.Request(url)
+    req.add_header('User-Agent', _UserAgent_)
+    resp = urllib2.urlopen(req)
+    httpdata = resp.read()
+    resp.close()
+    return httpdata
+
+
 def OBSAH():
     addDir('Relácie a seriály A-Z','http://videoarchiv.markiza.sk/relacie-a-serialy',5,icon,1)
     addDir('Televízne noviny','http://videoarchiv.markiza.sk/video/televizne-noviny',2,icon,1)
@@ -93,7 +104,6 @@ def EPISODES(url,page):
         url = article.a['href'].encode('utf-8')
         title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8').strip() 
         thumb = article.a.div.img['data-original'].encode('utf-8')
-#        VIDEOLINK(url,title);
         addDir(title,url,3,thumb,1)
 
     for section in doc.findAll('section', 'b-main-section'):
@@ -130,32 +140,23 @@ def VIDEOLINK(url,name):
        xbmcgui.Dialog().ok('Chyba', 'Platnost tohoto videa už vypršala', '', '')
        return False
     url = main.find('iframe')['src']
-
-    req = urllib2.Request(url)
-    req.add_header('User-Agent', _UserAgent_)
-    response = urllib2.urlopen(req)
-    httpdata = response.read()
-    response.close()
-
+    httpdata = fetchUrl(url)
     httpdata = httpdata.replace("\r","").replace("\n","").replace("\t","")
-    url = re.compile('src = {\s*\"hls\": [\'\"](.+?)[\'\"]\s*};').findall(httpdata)
+
+    url = re.search('src = {\s*\"hls\": [\'\"](.+?)[\'\"]\s*};', httpdata)
     if (url):
-       url=url[0]
+       url=url.group(1)
 
-       thumb = re.compile('<meta property="og:image" content="(.+?)">').findall(httpdata)
-       thumb = thumb[0] if len(thumb) > 0 else ''
+       thumb = re.search('<meta property="og:image" content="(.+?)">', httpdata)
+       thumb = thumb.group(1) if thumb else ''
 
-       desc = re.compile('<meta name="description" content="(.+?)">').findall(httpdata)
-       desc = desc[0] if len(desc) > 0 else ''
+       desc = re.search('<meta name="description" content="(.+?)">', httpdata)
+       desc = desc.group(1) if desc else ''
 
-       name = re.compile('<meta property="og:title" content="(.+?)">').findall(httpdata)
-       name = name[0] if len(name) > 0 else '?'
+       name = re.search('<meta property="og:title" content="(.+?)">', httpdata)
+       name = name.group(1) if name else '?'
 
-       req = urllib2.Request(url)
-       req.add_header('User-Agent', _UserAgent_)
-       response = urllib2.urlopen(req)
-       httpdata = response.read()
-       response.close()
+       httpdata = fetchUrl(url)
 
        streams = re.compile('RESOLUTION=\d+x(\d+).*\n([^#].+)').findall(httpdata) 
        url = url.rsplit('/', 1)[0] + '/'
@@ -165,19 +166,17 @@ def VIDEOLINK(url,name):
            addLink(name + bitrate,url + stream,thumb,desc)
 
     else:
-       url = re.compile('relatedLoc: [\'\"](.+?)[\'\"]').findall(httpdata)[0]
+       #televizne noviny
+       url = re.search('relatedLoc: [\'\"](.+?)[\'\"]', httpdata).group(1)
        url = url.replace("\/","/")
        
-       req = urllib2.Request(url)
-       req.add_header('User-Agent', _UserAgent_)
-       response = urllib2.urlopen(req)
-       httpdata = response.read()
-       response.close()
+       httpdata = fetchUrl(url)
        
        decoded=json.loads(httpdata)
        for chapter in decoded["playlist"]:
           name=chapter["contentTitle"]
           url=chapter["src"]["hls"]
+          url=url.rsplit('/', 1)[0] + '/' + 'index-f3-v1-a1.m3u8' #auto select 720p quality
           thumb=chapter["thumbnail"]
           desc=chapter["contentTitle"]
           addLink(name,url,thumb,desc)
