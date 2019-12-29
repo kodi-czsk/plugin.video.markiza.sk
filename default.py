@@ -177,7 +177,7 @@ def VIDEOLINK(url,name):
           name=chapter["contentTitle"]
           url=chapter["src"]["hls"]
           url=url.rsplit('/', 1)[0] + '/' + 'index-f3-v1-a1.m3u8' #auto select 720p quality
-          thumb=chapter["thumbnail"]
+          thumb=chapter.get("thumbnail",'')
           desc=chapter["contentTitle"]
           addLink(name,url,thumb,desc)
 
