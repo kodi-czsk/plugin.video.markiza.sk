@@ -39,8 +39,8 @@ def OBSAH():
     addDir('Televízne noviny','http://videoarchiv.markiza.sk/video/televizne-noviny',2,icon,1)
     addDir('TOP relácie','http://videoarchiv.markiza.sk',9,icon,1)
     addDir('Najnovšie epizódy','http://videoarchiv.markiza.sk',8,icon,1)
-    addDir('Najsledovanejšie','http://videoarchiv.markiza.sk',6,icon,1)
-    addDir('Odporúčame','http://videoarchiv.markiza.sk',7,icon,1)
+  #  addDir('Najsledovanejšie','http://videoarchiv.markiza.sk',6,icon,1)
+  #  addDir('Odporúčame','http://videoarchiv.markiza.sk',7,icon,1)
 
 def HOME_NEJSLEDOVANEJSI(url,page):
     doc = read_page(url)
@@ -67,18 +67,18 @@ def HOME_DOPORUCUJEME(url,page):
 def HOME_POSLEDNI(url,page):
     doc = read_page(url)
 
-    for section in doc.findAll('section', 'b-main-section b-section-articles my-5'):
-        if section.div.h3.getText(" ").encode('utf-8') == 'Najnovšie epizódy':
+    for section in doc.findAll('section', 'b-main-section'):
+        if section.div.h3 and section.div.h3.getText(" ").encode('utf-8') == 'Najnovšie epizódy':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
-                title = article.a.find('div', {'class': 'e-text-row'}).getText(" ").encode('utf-8')
+                title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
                 addDir(title,url,3,thumb,1)
 
 def HOME_TOPPORADY(url,page):
     doc = read_page(url)
 
-    for section in doc.findAll('section', 'b-main-section my-sm-5'):
+    for section in doc.findAll('section', 'b-main-section my-5'):
         if section.div.h3.getText(" ").encode('utf-8') == 'TOP relácie':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
