@@ -4,6 +4,8 @@ import json
 from parseutils import *
 from stats import *
 import xbmcplugin,xbmcgui,xbmcaddon
+from cookielib import CookieJar
+
 __baseurl__ = 'http://videoarchiv.markiza.sk'
 _UserAgent_ = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0'
 addon = xbmcaddon.Addon('plugin.video.markiza.sk')
@@ -12,6 +14,7 @@ __settings__ = xbmcaddon.Addon(id='plugin.video.markiza.sk')
 home = __settings__.getAddonInfo('path')
 icon = xbmc.translatePath( os.path.join( home, 'icon.png' ) )
 fanart = xbmc.translatePath( os.path.join( home, 'fanart.jpg' ) )
+loginurl = 'https://moja.markiza.sk/'
 
 #Nacteni informaci o doplnku
 __addon__      = xbmcaddon.Addon()
@@ -19,6 +22,9 @@ __addonname__  = __addon__.getAddonInfo('name')
 __addonid__    = __addon__.getAddonInfo('id')
 __cwd__        = __addon__.getAddonInfo('path').decode("utf-8")
 __language__   = __addon__.getLocalizedString
+__set__ = __addon__.getSetting
+
+settings = {'username': __set__('markiza_user'), 'password': __set__('markiza_pass')}
 
 def log(msg):
     xbmc.log(("### [%s] - %s" % (__addonname__.decode('utf-8'), msg.decode('utf-8'))).encode('utf-8'), level=xbmc.LOGDEBUG)
@@ -39,6 +45,9 @@ def OBSAH():
     addDir('Televízne noviny','http://videoarchiv.markiza.sk/video/televizne-noviny',2,icon,1)
     addDir('TOP relácie','http://videoarchiv.markiza.sk',9,icon,1)
     addDir('Najnovšie epizódy','http://videoarchiv.markiza.sk',8,icon,1)
+    addLive('LIVE Markiza','https://videoarchiv.markiza.sk/live/1-markiza',10,icon,1)
+    addLive('LIVE Doma','https://videoarchiv.markiza.sk/live/3-doma',10,icon,1)
+    addLive('LIVE Dajto','https://videoarchiv.markiza.sk/live/2-dajto',10,icon,1)
   #  addDir('Najsledovanejšie','http://videoarchiv.markiza.sk',6,icon,1)
   #  addDir('Odporúčame','http://videoarchiv.markiza.sk',7,icon,1)
 
@@ -181,6 +190,35 @@ def VIDEOLINK(url,name):
           desc=chapter["contentTitle"]
           addLink(name,url,thumb,desc)
 
+def live(url, page):
+    if not (settings['username'] and settings['password']):
+        xbmcgui.Dialog().ok('Chyba', 'Nastavte prosím Markíza konto', '', '')
+        xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
+        raise RuntimeError
+    cj = CookieJar()	
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+    response = opener.open(loginurl).read()
+    token = re.search(r'name=\"_token_\" value=\"(\S+?)\">',response).group(1)
+    data = urllib.urlencode({'email': settings['username'], 'password': settings['password'], '_token_': token, '_do': 'content1-loginForm-form-submit' })
+    data+='&login=Prihl%C3%A1si%C5%A5+sa'
+    opener.open(loginurl, data) 
+   
+    response = opener.open(url).read()
+    url = re.search(r'<iframe src=\"(\S+?)\"',response).group(1) #https://videoarchiv.markiza.sk/api/v1/user/live
+    response = opener.open(url).read()
+    opener.addheaders = [('Referer',url)]
+    url = re.search(r'<iframe src=\"(\S+?)\"',response).group(1) #https://media.cms.markiza.sk/embed/
+    response = opener.open(url).read()
+    url = re.search(r'\"hls\": \"(\S+?)\"',response).group(1) #https://h1-s6.c.markiza.sk/hls/markiza-sd-master.m3u8
+    response = opener.open(url).read()
+    
+    cookies='|Cookie='
+    for cookie in cj:
+      cookies+=cookie.name+'='+cookie.value+';'
+    cookies=cookies[:-2]
+    play_item = xbmcgui.ListItem(path=url+cookies)
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem=play_item)
+	
 def get_params():
         param=[]
         paramstring=sys.argv[2]
@@ -216,6 +254,18 @@ def addDir(name,url,mode,iconimage,page):
         liz.setInfo( type="Video", infoLabels={ "Title": name } )
         liz.setProperty( "Fanart_Image", fanart )
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
+        return ok
+		
+def addLive(name,url,mode,iconimage,page):
+        if ("voyo.markiza.sk" in url):
+           return False 
+        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&page="+str(page)
+        ok=True
+        liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
+        liz.setInfo( type="Video", infoLabels={ "Title": name } )
+        liz.setProperty( "Fanart_Image", fanart )
+        liz.setProperty('IsPlayable', 'true')
+        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=False)
         return ok
 
 params=get_params()
@@ -278,5 +328,10 @@ elif mode==2:
 elif mode==3:
         STATS("VIDEOLINK", "Function")
         VIDEOLINK(url,page)
+
+elif mode==10:
+        STATS("LIVE", "Function")
+        live(url,page)
+
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
