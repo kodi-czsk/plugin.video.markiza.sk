@@ -45,9 +45,9 @@ def OBSAH():
     addDir('Televízne noviny','http://videoarchiv.markiza.sk/video/televizne-noviny',2,icon,1)
     addDir('TOP relácie','http://videoarchiv.markiza.sk',9,icon,1)
     addDir('Najnovšie epizódy','http://videoarchiv.markiza.sk',8,icon,1)
-    addLive('LIVE Markiza','https://videoarchiv.markiza.sk/live/1-markiza',10,icon,1)
-    addLive('LIVE Doma','https://videoarchiv.markiza.sk/live/3-doma',10,icon,1)
-    addLive('LIVE Dajto','https://videoarchiv.markiza.sk/live/2-dajto',10,icon,1)
+    addLive('Live Markiza','https://videoarchiv.markiza.sk/live/1-markiza',10,icon,1)
+    addLive('Live Doma','https://videoarchiv.markiza.sk/live/3-doma',10,icon,1)
+    addLive('Live Dajto','https://videoarchiv.markiza.sk/live/2-dajto',10,icon,1)
   #  addDir('Najsledovanejšie','http://videoarchiv.markiza.sk',6,icon,1)
   #  addDir('Odporúčame','http://videoarchiv.markiza.sk',7,icon,1)
 
@@ -199,9 +199,8 @@ def live(url, page):
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
     response = opener.open(loginurl).read()
     token = re.search(r'name=\"_token_\" value=\"(\S+?)\">',response).group(1)
-    data = urllib.urlencode({'email': settings['username'], 'password': settings['password'], '_token_': token, '_do': 'content1-loginForm-form-submit' })
-    data+='&login=Prihl%C3%A1si%C5%A5+sa'
-    opener.open(loginurl, data) 
+    logindata = urllib.urlencode({'email': settings['username'], 'password': settings['password'], '_token_': token, '_do': 'content1-loginForm-form-submit' }) + '&login=Prihl%C3%A1si%C5%A5+sa'
+    opener.open(loginurl, logindata) 
    
     response = opener.open(url).read()
     url = re.search(r'<iframe src=\"(\S+?)\"',response).group(1) #https://videoarchiv.markiza.sk/api/v1/user/live
@@ -257,8 +256,6 @@ def addDir(name,url,mode,iconimage,page):
         return ok
 		
 def addLive(name,url,mode,iconimage,page):
-        if ("voyo.markiza.sk" in url):
-           return False 
         u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&page="+str(page)
         ok=True
         liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
