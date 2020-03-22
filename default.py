@@ -192,7 +192,7 @@ def VIDEOLINK(url,name):
 
 def live(url, page):
     if not (settings['username'] and settings['password']):
-        xbmcgui.Dialog().ok('Chyba', 'Nastavte prosímmoja.markiza.sk konto', '', '')
+        xbmcgui.Dialog().ok('Chyba', 'Nastavte prosí moja.markiza.sk konto', '', '')
         xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
         raise RuntimeError
     cj = CookieJar()	
