@@ -6,6 +6,7 @@ from stats import *
 import xbmcplugin,xbmcgui,xbmcaddon
 from cookielib import MozillaCookieJar
 
+
 __baseurl__ = 'http://videoarchiv.markiza.sk'
 _UserAgent_ = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0'
 addon = xbmcaddon.Addon('plugin.video.markiza.sk')
@@ -26,6 +27,7 @@ __set__ = __addon__.getSetting
 
 settings = {'username': __set__('markiza_user'), 'password': __set__('markiza_pass')}
 cookiepath = xbmc.translatePath("special://temp/markiza.cookies")
+
 
 def log(msg):
     xbmc.log(("### [%s] - %s" % (__addonname__.decode('utf-8'), msg.decode('utf-8'))).encode('utf-8'), level=xbmc.LOGDEBUG)
@@ -271,6 +273,16 @@ def addDir(name,url,mode,iconimage, IsPlayable=False):
         liz.setProperty('IsPlayable', ('True' if IsPlayable else 'False'))
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=(False if IsPlayable else True))
         return ok
+		
+def addLive(name,url,mode,iconimage,page):
+        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&page="+str(page)
+        ok=True
+        liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
+        liz.setInfo( type="Video", infoLabels={ "Title": name } )
+        liz.setProperty( "Fanart_Image", fanart )
+        liz.setProperty('IsPlayable', 'true')
+        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=False)
+        return ok
 
 params=get_params()
 url=None
@@ -330,6 +342,11 @@ elif mode==3:
 elif mode==10:
         STATS("LIVE", "Function")
         live(url)
+
+
+elif mode==10:
+        STATS("LIVE", "Function")
+        live(url,page)
 
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
