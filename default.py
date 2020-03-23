@@ -4,7 +4,7 @@ import json
 from parseutils import *
 from stats import *
 import xbmcplugin,xbmcgui,xbmcaddon
-from cookielib import CookieJar
+from cookielib import MozillaCookieJar
 
 __baseurl__ = 'http://videoarchiv.markiza.sk'
 _UserAgent_ = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0'
@@ -25,6 +25,7 @@ __language__   = __addon__.getLocalizedString
 __set__ = __addon__.getSetting
 
 settings = {'username': __set__('markiza_user'), 'password': __set__('markiza_pass')}
+cookiepath = xbmc.translatePath("special://temp/markiza.cookies")
 
 def log(msg):
     xbmc.log(("### [%s] - %s" % (__addonname__.decode('utf-8'), msg.decode('utf-8'))).encode('utf-8'), level=xbmc.LOGDEBUG)
@@ -41,17 +42,17 @@ def fetchUrl(url):
 
 
 def OBSAH():
-    addDir('Relácie a seriály A-Z','http://videoarchiv.markiza.sk/relacie-a-serialy',5,icon,1)
-    addDir('Televízne noviny','http://videoarchiv.markiza.sk/video/televizne-noviny',2,icon,1)
-    addDir('TOP relácie','http://videoarchiv.markiza.sk',9,icon,1)
-    addDir('Najnovšie epizódy','http://videoarchiv.markiza.sk',8,icon,1)
-    addLive('Live Markiza','https://videoarchiv.markiza.sk/live/1-markiza',10,icon,1)
-    addLive('Live Doma','https://videoarchiv.markiza.sk/live/3-doma',10,icon,1)
-    addLive('Live Dajto','https://videoarchiv.markiza.sk/live/2-dajto',10,icon,1)
-  #  addDir('Najsledovanejšie','http://videoarchiv.markiza.sk',6,icon,1)
-  #  addDir('Odporúčame','http://videoarchiv.markiza.sk',7,icon,1)
+    addDir('Relácie a seriály A-Z','http://videoarchiv.markiza.sk/relacie-a-serialy',5,icon)
+    addDir('Televízne noviny','http://videoarchiv.markiza.sk/video/televizne-noviny',2,icon)
+    addDir('TOP relácie','http://videoarchiv.markiza.sk',9,icon)
+    addDir('Najnovšie epizódy','http://videoarchiv.markiza.sk',8,icon)
+    addDir('Live Markiza','https://videoarchiv.markiza.sk/live/1-markiza',10,icon,IsPlayable=True)
+    addDir('Live Doma','https://videoarchiv.markiza.sk/live/3-doma',10,icon,IsPlayable=True)
+    addDir('Live Dajto','https://videoarchiv.markiza.sk/live/2-dajto',10,icon,IsPlayable=True)
+  #  addDir('Najsledovanejšie','http://videoarchiv.markiza.sk',6,icon)
+  #  addDir('Odporúčame','http://videoarchiv.markiza.sk',7,icon)
 
-def HOME_NEJSLEDOVANEJSI(url,page):
+def HOME_NEJSLEDOVANEJSI(url):
     doc = read_page(url)
 
     for section in doc.findAll('section', 'b-main-section b-section-articles b-section-articles-primary my-5'):
@@ -60,9 +61,9 @@ def HOME_NEJSLEDOVANEJSI(url,page):
                 url = article.a['href'].encode('utf-8')
                 title = article.a.find('div', {'class': 'e-text-row'}).getText(" ").encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
-                addDir(title,url,3,thumb,1)
+                addDir(title,url,3,thumb)
 
-def HOME_DOPORUCUJEME(url,page):
+def HOME_DOPORUCUJEME(url):
     doc = read_page(url)
 
     for section in doc.findAll('section', 'b-main-section b-section-articles b-section-articles-primary my-5'):
@@ -71,9 +72,9 @@ def HOME_DOPORUCUJEME(url,page):
                 url = article.a['href'].encode('utf-8')
                 title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
-                addDir(title,url,3,thumb,1)
+                addDir(title,url,3,thumb)
 
-def HOME_POSLEDNI(url,page):
+def HOME_POSLEDNI(url):
     doc = read_page(url)
 
     for section in doc.findAll('section', 'b-main-section'):
@@ -82,9 +83,9 @@ def HOME_POSLEDNI(url,page):
                 url = article.a['href'].encode('utf-8')
                 title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
-                addDir(title,url,3,thumb,1)
+                addDir(title,url,3,thumb)
 
-def HOME_TOPPORADY(url,page):
+def HOME_TOPPORADY(url):
     doc = read_page(url)
 
     for section in doc.findAll('section', 'b-main-section my-5'):
@@ -93,9 +94,9 @@ def HOME_TOPPORADY(url,page):
                 url = article.a['href'].encode('utf-8')
                 title = article.a['title'].encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
-                addDir(title,url,2,thumb,1)
+                addDir(title,url,2,thumb)
 
-def CATEGORIES(url,page):
+def CATEGORIES(url):
     print 'CATEGORIES *********************************' + str(url)
     doc = read_page(url)
 
@@ -103,9 +104,9 @@ def CATEGORIES(url,page):
         url = article.a['href'].encode('utf-8')
         title = article.a['title'].encode('utf-8')
         thumb = article.a.div.img['data-original'].encode('utf-8')
-        addDir(title,url,2,thumb,1)
+        addDir(title,url,2,thumb)
 
-def EPISODES(url,page):
+def EPISODES(url):
     print 'EPISOD9ES *********************************' + str(url)
     doc = read_page(url)
 
@@ -113,7 +114,7 @@ def EPISODES(url,page):
         url = article.a['href'].encode('utf-8')
         title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8').strip() 
         thumb = article.a.div.img['data-original'].encode('utf-8')
-        addDir(title,url,3,thumb,1)
+        addDir(title,url,3,thumb)
 
     for section in doc.findAll('section', 'b-main-section'):
         if section.div.h3.getText(" ").encode('utf-8') == 'Celé epizódy':
@@ -124,21 +125,21 @@ def EPISODES(url,page):
                 else:
                    title = 'Celé epizódy - ' + article.a['title'].encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
-                addDir(title,url,3,thumb,1)
+                addDir(title,url,3,thumb)
 
         if section.div.h3.getText(" ").encode('utf-8') == 'Mohlo by sa vám páčiť':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
                 title = 'Mohlo by sa vám páčiť - ' + article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8') 
                 thumb = article.a.div.img['data-original'].encode('utf-8')
-                addDir(title,url,3,thumb,1)
+                addDir(title,url,3,thumb)
 
         if section.div.h3.getText(" ").encode('utf-8') == 'Zo zákulisia':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
                 title = 'Zo zákulisia - ' + article.a['title'].encode('utf-8')
                 thumb = article.a.div.img['data-original'].encode('utf-8')
-                addDir(title,url,3,thumb,1)
+                addDir(title,url,3,thumb)
                 
 def VIDEOLINK(url,name):
     print 'VIDEOLINK *********************************' + str(url)
@@ -190,32 +191,47 @@ def VIDEOLINK(url,name):
           desc=chapter["contentTitle"]
           addLink(name,url,thumb,desc)
 
-def live(url, page):
+def live(url, relogin=False):
     if not (settings['username'] and settings['password']):
         xbmcgui.Dialog().ok('Chyba', 'Nastavte prosím moja.markiza.sk konto', '', '')
         xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
         raise RuntimeError
-    cj = CookieJar()	
+    cj = MozillaCookieJar()	
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-    response = opener.open(loginurl).read()
-    token = re.search(r'name=\"_token_\" value=\"(\S+?)\">',response).group(1)
-    logindata = urllib.urlencode({'email': settings['username'], 'password': settings['password'], '_token_': token, '_do': 'content1-loginForm-form-submit' }) + '&login=Prihl%C3%A1si%C5%A5+sa'
-    opener.open(loginurl, logindata) 
+    if not relogin:
+       try:
+          cj.load(cookiepath)
+       except IOError:
+          relogin=True
+    if relogin:
+       response = opener.open(loginurl).read()
+       token = re.search(r'name=\"_token_\" value=\"(\S+?)\">',response).group(1)
+       logindata = urllib.urlencode({'email': settings['username'], 'password': settings['password'], '_token_': token, '_do': 'content1-loginForm-form-submit' }) + '&login=Prihl%C3%A1si%C5%A5+sa'
+       opener.open(loginurl, logindata)
+       log('Saving cookies') 
+       cj.save(cookiepath)
    
     response = opener.open(url).read()
-    url = re.search(r'<iframe src=\"(\S+?)\"',response).group(1) #https://videoarchiv.markiza.sk/api/v1/user/live
-    response = opener.open(url).read()
-    opener.addheaders = [('Referer',url)]
-    url = re.search(r'<iframe src=\"(\S+?)\"',response).group(1) #https://media.cms.markiza.sk/embed/
-    response = opener.open(url).read()
-    url = re.search(r'\"hls\": \"(\S+?)\"',response).group(1) #https://h1-s6.c.markiza.sk/hls/markiza-sd-master.m3u8
-    response = opener.open(url).read()
+    link = re.search(r'<iframe src=\"(\S+?)\"',response).group(1) #https://videoarchiv.markiza.sk/api/v1/user/live
+    try:
+       response = opener.open(link).read()
+    except urllib2.HTTPError: #handle expired cookies
+       if relogin:
+          raise RuntimeError # loop protection
+       else:
+          live(url, relogin=True) 
+          return
+    opener.addheaders = [('Referer',link)]
+    link = re.search(r'<iframe src=\"(\S+?)\"',response).group(1) #https://media.cms.markiza.sk/embed/
+    response = opener.open(link).read()
+    link = re.search(r'\"hls\": \"(\S+?)\"',response).group(1) #https://h1-s6.c.markiza.sk/hls/markiza-sd-master.m3u8
+    response = opener.open(link).read()
     
     cookies='|Cookie='
     for cookie in cj:
       cookies+=cookie.name+'='+cookie.value+';'
     cookies=cookies[:-2]
-    play_item = xbmcgui.ListItem(path=url+cookies)
+    play_item = xbmcgui.ListItem(path=link+cookies)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem=play_item)
 	
 def get_params():
@@ -244,25 +260,16 @@ def addLink(name,url,iconimage,popis):
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz)
         return ok
 
-def addDir(name,url,mode,iconimage,page):
+def addDir(name,url,mode,iconimage, IsPlayable=False):
         if ("voyo.markiza.sk" in url):
            return False 
-        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&page="+str(page)
+        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
         ok=True
         liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
         liz.setInfo( type="Video", infoLabels={ "Title": name } )
         liz.setProperty( "Fanart_Image", fanart )
-        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
-        return ok
-		
-def addLive(name,url,mode,iconimage,page):
-        u=sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&page="+str(page)
-        ok=True
-        liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
-        liz.setInfo( type="Video", infoLabels={ "Title": name } )
-        liz.setProperty( "Fanart_Image", fanart )
-        liz.setProperty('IsPlayable', 'true')
-        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=False)
+        liz.setProperty('IsPlayable', ('True' if IsPlayable else 'False'))
+        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=(False if IsPlayable else True))
         return ok
 
 params=get_params()
@@ -270,7 +277,6 @@ url=None
 name=None
 thumb=None
 mode=None
-page=None
 
 try:
         url=urllib.unquote_plus(params["url"])
@@ -284,15 +290,10 @@ try:
         mode=int(params["mode"])
 except:
         pass
-try:
-        page=int(params["page"])
-except:
-        pass
 
 print "Mode: "+str(mode)
 print "URL: "+str(url)
 print "Name: "+str(name)
-print "Page: "+str(page)
 
 if mode==None or url==None or len(url)<1:
         STATS("OBSAH", "Function")
@@ -300,35 +301,35 @@ if mode==None or url==None or len(url)<1:
 
 elif mode==6:
         STATS("HOME_NEJSLEDOVANEJSI", "Function")
-        HOME_NEJSLEDOVANEJSI(url,page)
+        HOME_NEJSLEDOVANEJSI(url)
 
 elif mode==7:
         STATS("HOME_DOPORUCUJEME", "Function")
-        HOME_DOPORUCUJEME(url,page)
+        HOME_DOPORUCUJEME(url)
 
 elif mode==8:
         STATS("HOME_POSLEDNI", "Function")
-        HOME_POSLEDNI(url,page)
+        HOME_POSLEDNI(url)
 
 elif mode==9:
         STATS("HOME_TOPPORADY", "Function")
-        HOME_TOPPORADY(url,page)
+        HOME_TOPPORADY(url)
 
 elif mode==5:
         STATS("CATEGORIES", "Function")
-        CATEGORIES(url,page)
+        CATEGORIES(url)
 
 elif mode==2:
         STATS("EPISODES", "Function")
-        EPISODES(url,page)
+        EPISODES(url)
 
 elif mode==3:
         STATS("VIDEOLINK", "Function")
-        VIDEOLINK(url,page)
+        VIDEOLINK(url)
 
 elif mode==10:
         STATS("LIVE", "Function")
-        live(url,page)
+        live(url)
 
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
