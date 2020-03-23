@@ -217,6 +217,7 @@ def live(url, relogin=False):
        response = opener.open(link).read()
     except urllib2.HTTPError: #handle expired cookies
        if relogin:
+          xbmcgui.Dialog().ok('Chyba', 'Skontrolujte prihlasovacie údaje', '', '')
           raise RuntimeError # loop protection
        else:
           live(url, relogin=True) 
