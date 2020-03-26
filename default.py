@@ -141,7 +141,7 @@ def EPISODES(url):
                 thumb = article.a.div.img['data-original'].encode('utf-8')
                 addDir(title,url,3,thumb)
                 
-def VIDEOLINK(url,name):
+def VIDEOLINK(url):
     print 'VIDEOLINK *********************************' + str(url)
 
     doc = read_page(url)
@@ -191,7 +191,7 @@ def VIDEOLINK(url,name):
           desc=chapter["contentTitle"]
           addLink(name,url,thumb,desc)
 
-def live(url, relogin=False):
+def LIVE(url, relogin=False):
     if not (settings['username'] and settings['password']):
         xbmcgui.Dialog().ok('Chyba', 'Nastavte prosím moja.markiza.sk konto', '', '')
         xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xbmcgui.ListItem())
@@ -220,7 +220,7 @@ def live(url, relogin=False):
           xbmcgui.Dialog().ok('Chyba', 'Skontrolujte prihlasovacie údaje', '', '')
           raise RuntimeError # loop protection
        else:
-          live(url, relogin=True) 
+          LIVE(url, relogin=True) 
           return
     opener.addheaders = [('Referer',link)]
     link = re.search(r'<iframe src=\"(\S+?)\"',response).group(1) #https://media.cms.markiza.sk/embed/
@@ -330,7 +330,7 @@ elif mode==3:
 
 elif mode==10:
         STATS("LIVE", "Function")
-        live(url)
+        LIVE(url)
 
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
