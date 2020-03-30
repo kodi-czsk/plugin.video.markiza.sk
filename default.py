@@ -108,7 +108,11 @@ def CATEGORIES(url):
 
 def EPISODES(url):
     print 'EPISOD9ES *********************************' + str(url)
-    doc = read_page(url)
+    try:
+        doc = read_page(url)
+    except urllib2.HTTPError:
+        xbmcgui.Dialog().ok('Chyba', 'CHYBA 404: STRÁNKA NEBOLA NÁJDENÁ', '', '')
+        return False
 
     for article in doc.findAll('article', 'b-article b-article-text b-article-inline'):
         url = article.a['href'].encode('utf-8')
@@ -146,6 +150,9 @@ def VIDEOLINK(url):
 
     doc = read_page(url)
     main = doc.find('main')
+    if (not main):
+        xbmcgui.Dialog().ok('Chyba', 'Video nie je dostupné vo vašej krajine', '', '')
+        return False
     if (not main.find('iframe')):
        xbmcgui.Dialog().ok('Chyba', 'Platnost tohoto videa už vypršala', '', '')
        return False
