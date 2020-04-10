@@ -150,15 +150,16 @@ def VIDEOLINK(url):
 
     doc = read_page(url)
     main = doc.find('main')
-    if (not main):
-        xbmcgui.Dialog().ok('Chyba', 'Video nie je dostupné vo vašej krajine', '', '')
-        return False
     if (not main.find('iframe')):
        xbmcgui.Dialog().ok('Chyba', 'Platnost tohoto videa už vypršala', '', '')
        return False
     url = main.find('iframe')['src']
     httpdata = fetchUrl(url)
     httpdata = httpdata.replace("\r","").replace("\n","").replace("\t","")
+    if '<title>Error</title>' in httpdata:
+        error=re.search('<h2 class="e-title">(.*?)</h2>', httpdata).group(1) #Video nie je dostupné vo vašej krajine
+        xbmcgui.Dialog().ok('Chyba', error, '', '')
+        return False
 
     url = re.search('src = {\s*\"hls\": [\'\"](.+?)[\'\"]\s*};', httpdata)
     if (url):
@@ -166,10 +167,8 @@ def VIDEOLINK(url):
 
        thumb = re.search('<meta property="og:image" content="(.+?)">', httpdata)
        thumb = thumb.group(1) if thumb else ''
-
        desc = re.search('<meta name="description" content="(.+?)">', httpdata)
        desc = desc.group(1) if desc else ''
-
        name = re.search('<meta property="og:title" content="(.+?)">', httpdata)
        name = name.group(1) if name else '?'
 
@@ -186,7 +185,6 @@ def VIDEOLINK(url):
        #televizne noviny
        url = re.search('relatedLoc: [\'\"](.+?)[\'\"]', httpdata).group(1)
        url = url.replace("\/","/")
-       
        httpdata = fetchUrl(url)
        
        decoded=json.loads(httpdata)
