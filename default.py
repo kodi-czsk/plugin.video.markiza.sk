@@ -236,7 +236,7 @@ def LIVE(url, relogin=False):
     cookies='|Cookie='
     for cookie in cj:
       cookies+=cookie.name+'='+cookie.value+';'
-    cookies=cookies[:-2]
+    cookies=cookies[:-1]
     play_item = xbmcgui.ListItem(path=link+cookies)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem=play_item)
 	
