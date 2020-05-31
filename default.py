@@ -219,9 +219,8 @@ def LIVE(url, relogin=False):
     response = opener.open(url).read()
     link = re.search(r'<iframe src=\"(\S+?)\"',response).group(1) #https://videoarchiv.markiza.sk/api/v1/user/live
     link = link.replace('&amp;','&')    
-    try:
-       response = opener.open(link).read()
-    except urllib2.HTTPError: #handle expired cookies
+    response = opener.open(link).read()
+    if '<iframe src=\"' not in response:   #handle expired cookies
        if relogin:
           xbmcgui.Dialog().ok('Chyba', 'Skontrolujte prihlasovacie údaje', '', '')
           raise RuntimeError # loop protection
