@@ -27,6 +27,13 @@ __set__ = __addon__.getSetting
 settings = {'username': __set__('markiza_user'), 'password': __set__('markiza_pass')}
 cookiepath = xbmc.translatePath("special://temp/markiza.cookies")
 
+#handle Sectigo CA cert missing in cacerts - disable SSL checks
+try:
+   import ssl
+   ssl._create_default_https_context = ssl._create_unverified_context
+except:
+   pass
+
 def log(msg):
     xbmc.log(("### [%s] - %s" % (__addonname__.decode('utf-8'), msg.decode('utf-8'))).encode('utf-8'), level=xbmc.LOGDEBUG)
 
@@ -230,6 +237,10 @@ def LIVE(url, relogin=False):
     opener.addheaders = [('Referer',link)]
     link = re.search(r'<iframe src=\"(\S+?)\"',response).group(1) #https://media.cms.markiza.sk/embed/
     response = opener.open(link).read()
+    if '<title>Error</title>' in response:
+        error=re.search('<h2 class="e-title">(.*?)</h2>', response).group(1) #Video nie je dostupné vo vašej krajine
+        xbmcgui.Dialog().ok('Chyba', error, '', '')
+        raise RuntimeError 
     link = re.search(r'\"hls\": \"(\S+?)\"',response).group(1) #https://h1-s6.c.markiza.sk/hls/markiza-sd-master.m3u8
     response = opener.open(link).read()
     
