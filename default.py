@@ -56,36 +56,13 @@ def OBSAH():
     addDir('Live Markiza','https://videoarchiv.markiza.sk/live/1-markiza',10,icon,IsPlayable=True)
     addDir('Live Doma','https://videoarchiv.markiza.sk/live/3-doma',10,icon,IsPlayable=True)
     addDir('Live Dajto','https://videoarchiv.markiza.sk/live/2-dajto',10,icon,IsPlayable=True)
-  #  addDir('Najsledovanejšie','http://videoarchiv.markiza.sk',6,icon)
-  #  addDir('Odporúčame','http://videoarchiv.markiza.sk',7,icon)
 
-def HOME_NEJSLEDOVANEJSI(url):
-    doc = read_page(url)
-
-    for section in doc.findAll('section', 'b-main-section b-section-articles b-section-articles-primary my-5'):
-        if section.div.h3.getText(" ").encode('utf-8') == 'Najsledovanejšie':
-            for article in section.findAll('article'):
-                url = article.a['href'].encode('utf-8')
-                title = article.a.find('div', {'class': 'e-text-row'}).getText(" ").encode('utf-8')
-                thumb = article.a.div.img['data-original'].encode('utf-8')
-                addDir(title,url,3,thumb)
-
-def HOME_DOPORUCUJEME(url):
-    doc = read_page(url)
-
-    for section in doc.findAll('section', 'b-main-section b-section-articles b-section-articles-primary my-5'):
-        if section.div.h3.getText(" ").encode('utf-8') == 'Odporúčame':
-            for article in section.findAll('article'):
-                url = article.a['href'].encode('utf-8')
-                title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
-                thumb = article.a.div.img['data-original'].encode('utf-8')
-                addDir(title,url,3,thumb)
 
 def HOME_POSLEDNI(url):
     doc = read_page(url)
 
     for section in doc.findAll('section', 'b-main-section'):
-        if section.div.h3 and section.div.h3.getText(" ").encode('utf-8') == 'Najnovšie epizódy':
+        if section.div.h3 and section.div.h3.getText(" ").encode('utf-8') == 'NAJNOVŠIE EPIZÓDY':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
                 title = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
@@ -96,7 +73,7 @@ def HOME_TOPPORADY(url):
     doc = read_page(url)
 
     for section in doc.findAll('section', 'b-main-section my-5'):
-        if section.div.h3.getText(" ").encode('utf-8') == 'TOP relácie':
+        if section.div.h3.getText(" ").encode('utf-8') == 'TOP RELÁCIE':
             for article in section.findAll('article'):
                 url = article.a['href'].encode('utf-8')
                 title = article.a['title'].encode('utf-8')
@@ -315,14 +292,6 @@ print "Name: "+str(name)
 if mode==None or url==None or len(url)<1:
         STATS("OBSAH", "Function")
         OBSAH()
-
-elif mode==6:
-        STATS("HOME_NEJSLEDOVANEJSI", "Function")
-        HOME_NEJSLEDOVANEJSI(url)
-
-elif mode==7:
-        STATS("HOME_DOPORUCUJEME", "Function")
-        HOME_DOPORUCUJEME(url)
 
 elif mode==8:
         STATS("HOME_POSLEDNI", "Function")
