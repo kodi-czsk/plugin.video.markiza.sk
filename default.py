@@ -6,7 +6,7 @@ from stats import *
 import xbmcplugin,xbmcgui,xbmcaddon
 from cookielib import MozillaCookieJar
 
-__baseurl__ = 'http://videoarchiv.markiza.sk'
+__baseurl__ = 'https://videoarchiv.markiza.sk/'
 _UserAgent_ = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0'
 addon = xbmcaddon.Addon('plugin.video.markiza.sk')
 profile = xbmc.translatePath(addon.getAddonInfo('profile'))
@@ -49,13 +49,13 @@ def fetchUrl(url):
 
 
 def OBSAH():
-    addDir('Relácie a seriály A-Z','http://videoarchiv.markiza.sk/relacie-a-serialy',5,icon)
-    addDir('Televízne noviny','http://videoarchiv.markiza.sk/video/televizne-noviny',2,icon)
-    addDir('TOP relácie','http://videoarchiv.markiza.sk',9,icon)
-    addDir('Najnovšie epizódy','http://videoarchiv.markiza.sk',8,icon)
-    addDir('Live Markiza','https://videoarchiv.markiza.sk/live/1-markiza',10,icon,IsPlayable=True)
-    addDir('Live Doma','https://videoarchiv.markiza.sk/live/3-doma',10,icon,IsPlayable=True)
-    addDir('Live Dajto','https://videoarchiv.markiza.sk/live/2-dajto',10,icon,IsPlayable=True)
+    addDir('Relácie a seriály A-Z',__baseurl__ + 'relacie-a-serialy',5,icon)
+    addDir('Televízne noviny',__baseurl__ + 'video/televizne-noviny',2,icon)
+    addDir('TOP relácie',__baseurl__,9,icon)
+    addDir('Najnovšie epizódy',__baseurl__,8,icon)
+    addDir('Live Markiza',__baseurl__ + 'live/1-markiza',10,icon,IsPlayable=True)
+    addDir('Live Doma',__baseurl__ + 'live/3-doma',10,icon,IsPlayable=True)
+    addDir('Live Dajto',__baseurl__ + 'live/2-dajto',10,icon,IsPlayable=True)
 
 
 def HOME_POSLEDNI(url):
