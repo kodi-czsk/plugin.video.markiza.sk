@@ -145,40 +145,26 @@ def VIDEOLINK(url):
         xbmcgui.Dialog().ok('Chyba', error, '', '')
         return False
 
-    url = re.search('src = {\s*\"hls\": [\'\"](.+?)[\'\"]\s*};', httpdata)
-    if (url):
-       url=url.group(1)
+    #url = re.search('src = {\s*\"hls\": [\'\"](.+?)[\'\"]\s*};', httpdata)
+    url = re.search('\"HLS\":\[{\"src\":\"(.+?)\"', httpdata)
+    url=url.group(1).replace('\/','/')
+     
+    thumb = re.search('<meta property="og:image" content="(.+?)">', httpdata)
+    thumb = thumb.group(1) if thumb else ''
+    name = re.search('<meta property="og:title" content="(.+?)">', httpdata)
+    name = name.group(1) if name else '?'
+    desc = re.search('<meta name="description" content="(.+?)">', httpdata)
+    desc = desc.group(1) if desc else name
 
-       thumb = re.search('<meta property="og:image" content="(.+?)">', httpdata)
-       thumb = thumb.group(1) if thumb else ''
-       desc = re.search('<meta name="description" content="(.+?)">', httpdata)
-       desc = desc.group(1) if desc else ''
-       name = re.search('<meta property="og:title" content="(.+?)">', httpdata)
-       name = name.group(1) if name else '?'
+    httpdata = fetchUrl(url)
 
-       httpdata = fetchUrl(url)
+    streams = re.compile('RESOLUTION=\d+x(\d+).*\n([^#].+)').findall(httpdata) 
+    url = url.rsplit('/', 1)[0] + '/'
+    streams.sort(key=lambda x: int(x[0]),reverse=True)
+    for (bitrate, stream) in streams:
+        bitrate=' [' + bitrate + 'p]'
+        addLink(name + bitrate,url + stream,thumb,desc)
 
-       streams = re.compile('RESOLUTION=\d+x(\d+).*\n([^#].+)').findall(httpdata) 
-       url = url.rsplit('/', 1)[0] + '/'
-       streams.sort(key=lambda x: int(x[0]),reverse=True)
-       for (bitrate, stream) in streams:
-           bitrate=' [' + bitrate + 'p]'
-           addLink(name + bitrate,url + stream,thumb,desc)
-
-    else:
-       #televizne noviny
-       url = re.search('relatedLoc: [\'\"](.+?)[\'\"]', httpdata).group(1)
-       url = url.replace("\/","/")
-       httpdata = fetchUrl(url)
-       
-       decoded=json.loads(httpdata)
-       for chapter in decoded["playlist"]:
-          name=chapter["contentTitle"]
-          url=chapter["src"]["hls"]
-          url=url.rsplit('/', 1)[0] + '/' + 'index-f3-v1-a1.m3u8' #auto select 720p quality
-          thumb=chapter.get("thumbnail",'')
-          desc=chapter["contentTitle"]
-          addLink(name,url,thumb,desc)
 
 def LIVE(url, relogin=False):
     if not (settings['username'] and settings['password']):
