@@ -41,10 +41,12 @@ try:
 except:
    pass
    
-def fetchUrl(url, opener=None):
+def fetchUrl(url, opener=None, ref=None):
         httpdata = ''	           
         req = urllib2.Request(url)
         req.add_header('User-Agent', _UserAgent_)
+        if ref:
+            req.add_header('Referer', ref)
         if opener:
             resp = opener.open(req)
         else:
@@ -257,7 +259,7 @@ class markizaContentProvider(ContentProvider):
            httpdata = self.opener.open(req)
            
         httpdata = fetchUrl(item['url'], self.opener)
-        url = re.search(r'<iframe src=\"(\S+?)\"',httpdata).group(1) #https://videoarchiv.markiza.sk/api/v1/user/live
+        url = re.search(r'<iframe src=\"(https:\/\/videoarchiv\S+?)\"',httpdata).group(1) #https://videoarchiv.markiza.sk/api/v1/user/live
         url = url.replace('&amp;','&')    
         httpdata = fetchUrl(url, self.opener)
         if '<iframe src=\"' not in httpdata:   #handle expired cookies
@@ -268,32 +270,25 @@ class markizaContentProvider(ContentProvider):
               return self._resolve_live(item, relogin=True) 
      
         referer=url
-        url = re.search(r'<iframe src=\"(\S+?)\"',httpdata).group(1) #https://media.cms.markiza.sk/embed/
-        req = urllib2.Request(url)
-        req.add_header('Referer', referer)
-        httpdata = self.opener.open(req).read()
-         
+        url = re.search(r'<iframe src=\"(https:\/\/media\S+?)\"',httpdata).group(1) #https://media.cms.markiza.sk/embed/
+        httpdata = fetchUrl(url,self.opener,referer) 
         if '<title>Error</title>' in httpdata:
             error=re.search('<h2 class="e-title">(.*?)</h2>', httpdata).group(1) #Video nie je dostupné vo vašej krajine
             xbmcgui.Dialog().ok('Error', error, '', '')
             return 
-        url = re.search(r'\"hls\": \"(\S+?)\"',httpdata).group(1) #https://h1-s6.c.markiza.sk/hls/markiza-sd-master.m3u8
-        httpdata = fetchUrl(url,self.opener)
-        
-        cookies='|Cookie='
-        for cookie in self.cj:
-          cookies+=cookie.name+'='+cookie.value+';'
-        cookies=cookies[:-1]
-
-        streams = re.compile('BANDWIDTH=(\d+),RESOLUTION=\d+x\d+\n([^#].+)').findall(httpdata)   
+        url = re.search(r'\"src\":\"(\S+?)\"',httpdata).group(1).replace('\/','/') #https:\/\/cmesk-ott-live-sec.ssl.cdn.cra.cz
+        httpdata = fetchUrl(url,self.opener,'https://media.cms.markiza.sk/')
+ 
+        streams = re.compile('RESOLUTION=\d+x(\d+).*\n([^#].+)').findall(httpdata)   
         url = url.rsplit('/', 1)[0] + '/'
-        streams.sort(key=lambda x: int(x[0]),reverse=True)
         for (bitrate, stream) in streams:
             item = self.video_item()
             item['surl'] = item['title']
-            item['quality'] = str(int(bitrate)/(1000.0)) +  ' kb/s'
-            item['url'] = url + stream + cookies
+            item['quality'] = bitrate.replace('432','480').replace('640','720')   #adjust to predefined 360p, 480p and 720p
+            item['url'] = url + stream + '|Referer=https://media.cms.markiza.sk/'
             resolved.append(item)
-
+        resolved = sorted(resolved, key=lambda x:int(x['quality']), reverse=True)
+        for idx, item in enumerate(resolved):
+           item['quality'] += 'p'
         return resolved
 
