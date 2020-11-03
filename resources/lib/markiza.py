@@ -23,7 +23,6 @@
 import cookielib
 import urllib
 import urllib2
-import urlparse
 import re
 from datetime import date
 from parseutils import *
@@ -59,8 +58,7 @@ class markizaContentProvider(ContentProvider):
 
     def __init__(self, username=None, password=None, filter=None, tmp_dir='/tmp'):
         ContentProvider.__init__(self, 'markiza.sk', 'https://videoarchiv.markiza.sk/', username, password, filter, tmp_dir)
-        self.cj=cookielib.LWPCookieJar()      
-        self.cp = urllib2.HTTPCookieProcessor(self.cj)
+        self.cp = urllib2.HTTPCookieProcessor(cookielib.LWPCookieJar())
         self.init_urllib()
 
     def init_urllib(self):
@@ -123,7 +121,7 @@ class markizaContentProvider(ContentProvider):
         doc = read_page(url)
         for section in doc.findAll('section', 'b-main-section'):
             if section.div.h3 and section.div.h3.getText(" ").encode('utf-8') == 'NAJNOVŠIE EPIZÓDY':
-                    for article in section.findAll('article'):
+                    for article in section.div.div.findAll('article'):
                         item = self.video_item()
                         item['url'] = article.a['href'].encode('utf-8')
                         item['title'] = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
@@ -198,7 +196,7 @@ class markizaContentProvider(ContentProvider):
     def resolve(self, item, captcha_cb=None, select_cb=None):
        item = item.copy()
        if 'markiza.sk/live/' in item['url']:
-           result = self._resolve_live(item)
+           result = self._resolve_live(item, relogin=True)
        else:
            result = self._resolve_vod(item)
        if len(result) > 0 and select_cb:
