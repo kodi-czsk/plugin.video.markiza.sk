@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+    # -*- coding: UTF-8 -*-
 #/*
 # *      Copyright (C) 2013 Maros Ondrasek
 # *
@@ -22,9 +22,8 @@
 import os
 sys.path.append( os.path.join ( os.path.dirname(__file__),'resources','lib') )
 import markiza
-import xbmcprovider,xbmcaddon,xbmc
+import xbmcprovider,xbmcaddon
 import util
-import urllib2
 
 __scriptid__   = 'plugin.video.markiza.sk'
 __scriptname__ = 'markiza.sk'
