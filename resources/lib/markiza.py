@@ -20,15 +20,15 @@
 # *
 # */
 
-import cookielib
-import urllib
-import urllib2
+import http.cookiejar
+import urllib.request, urllib.parse, urllib.error
 import re
 from datetime import date
-from parseutils import *
 import xbmcgui
 import util
 from provider import ContentProvider
+from bs4 import BeautifulSoup, BeautifulStoneSoup
+
 
 _UserAgent_ = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0'
 loginurl = 'https://moja.markiza.sk/'
@@ -39,32 +39,35 @@ try:
    ssl._create_default_https_context = ssl._create_unverified_context
 except:
    pass
-   
+
 def fetchUrl(url, opener=None, ref=None):
         httpdata = ''	           
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         req.add_header('User-Agent', _UserAgent_)
         if ref:
             req.add_header('Referer', ref)
         if opener:
             resp = opener.open(req)
         else:
-            resp = urllib2.urlopen(req)
-        httpdata = resp.read()
+            resp = urllib.request.urlopen(req)
+        httpdata = resp.read().decode('utf-8')
         resp.close()
         return httpdata
+
+def read_page(url):
+    return BeautifulSoup(fetchUrl(url), "html5lib")
 
 class markizaContentProvider(ContentProvider):
 
     def __init__(self, username=None, password=None, filter=None, tmp_dir='/tmp'):
         ContentProvider.__init__(self, 'markiza.sk', 'https://videoarchiv.markiza.sk/', username, password, filter, tmp_dir)
-        self.cp = urllib2.HTTPCookieProcessor(cookielib.LWPCookieJar())
+        self.cp = urllib.request.HTTPCookieProcessor(http.cookiejar.LWPCookieJar())
         self.init_urllib()
 
     def init_urllib(self):
-        opener = urllib2.build_opener(self.cp)
+        opener = urllib.request.build_opener(self.cp)
         self.opener = opener
-        urllib2.install_opener(opener)
+        urllib.request.install_opener(opener)
 
     def capabilities(self):
         return ['categories', 'resolve', '!download']
@@ -107,12 +110,12 @@ class markizaContentProvider(ContentProvider):
         result = []
         doc = read_page(url)
         for section in doc.findAll('section', 'b-main-section my-5'):
-            if section.div.h3.getText(" ").encode('utf-8') == 'TOP RELÁCIE':
+            if section.div.h3.getText(" ") == 'TOP RELÁCIE':
                 for article in section.findAll('article'):
                     item = self.dir_item()
-                    item['url'] = article.a['href'].encode('utf-8')
-                    item['title'] = article.a['title'].encode('utf-8')
-                    item['img'] = article.a.div.img['data-original'].encode('utf-8')
+                    item['url'] = article.a['href']
+                    item['title'] = article.a['title']
+                    item['img'] = article.a.div.img['data-original']
                     result.append(item)
         return result\
     
@@ -120,76 +123,81 @@ class markizaContentProvider(ContentProvider):
         result = []
         doc = read_page(url)
         for section in doc.findAll('section', 'b-main-section'):
-            if section.div.h3 and section.div.h3.getText(" ").encode('utf-8') == 'NAJNOVŠIE EPIZÓDY':
+            if section.div.h3 and section.div.h3.getText(" ") == 'NAJNOVŠIE EPIZÓDY':
                     for article in section.div.div.findAll('article'):
                         item = self.video_item()
-                        item['url'] = article.a['href'].encode('utf-8')
-                        item['title'] = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
-                        item['img'] = article.a.div.img['data-original'].encode('utf-8')
+                        item['url'] = article.a['href']
+                        item['title'] = article.a.find('div', {'class': 'e-info'}).getText(" ")
+                        item['title'] = " ".join(item['title'].split())
+                        item['img'] = article.a.div.img['data-original']
                         result.append(item)
         return result
         
     def list_show(self, url, list_series=False, list_episodes=False):
         result = []
         self.info("list_show %s"%(url))
-        print('list_series: %s' % list_series)
-        print('list_episodes: %s' % list_episodes)
+        print(('list_series: %s' % list_series))
+        print(('list_episodes: %s' % list_episodes))
         try:
            doc = read_page(url)
-        except urllib2.HTTPError:
+        except urllib.error.HTTPError:
            xbmcgui.Dialog().ok('Error', 'CHYBA 404: STRÁNKA NEBOLA NÁJDENÁ', '', '')
            return
            
         if list_series:
             for article in doc.findAll('article'):
                 item = self.dir_item()
-                item['url'] = article.a['href'].encode('utf-8')
-                item['title'] = article.a['title'].encode('utf-8')
-                item['img'] = article.a.div.img['data-original'].encode('utf-8')
+                item['url'] = article.a['href']
+                item['title'] = article.a['title']
+                item['img'] = article.a.div.img['data-original']
                 result.append(item)
                                        
         if list_episodes:
                 for article in doc.findAll('article', 'b-article b-article-text b-article-inline'):
                     item = self.video_item()
-                    item['url'] = article.a['href'].encode('utf-8')
+                    item['url'] = article.a['href']
                     if self.base_url not in item['url']:
                         continue
-                    item['title'] = article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8').strip() 
-                    item['img'] = article.a.div.img['data-original'].encode('utf-8')
+                    item['title'] = article.a.find('div', {'class': 'e-info'}).getText(" ")
+                    item['title'] = " ".join(item['title'].split())
+                    item['img'] = article.a.div.img['data-original']
                     result.append(item)
 
                 for section in doc.findAll('section', 'b-main-section'):
-                    if section.div.h3.getText(" ").encode('utf-8') == 'Celé epizódy':
+                    if section.div.h3.getText(" ") == 'Celé epizódy':
                         for article in section.findAll('article'):
                             item = self.video_item()
-                            item['url'] = article.a['href'].encode('utf-8')
+                            item['url'] = article.a['href']
                             if self.base_url not in item['url']:
                                 continue
                             if (article.a.find('div', {'class': 'e-date'})):
-                               item['title'] = 'Celé epizódy - ' + article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8')
+                               item['title'] = 'Celé epizódy - ' + article.a.find('div', {'class': 'e-info'}).getText(" ")
                             else:
-                               item['title'] = 'Celé epizódy - ' + article.a['title'].encode('utf-8')
-                            item['img'] = article.a.div.img['data-original'].encode('utf-8')
+                               item['title'] = 'Celé epizódy - ' + article.a['title']
+                            item['title'] = " ".join(item['title'].split())
+                            item['img'] = article.a.div.img['data-original']
                             result.append(item)
 
-                    if section.div.h3.getText(" ").encode('utf-8') == 'Mohlo by sa vám páčiť':
+                    if section.div.h3.getText(" ") == 'Mohlo by sa vám páčiť':
                         for article in section.findAll('article'):
                             item = self.video_item()
-                            item['url'] = article.a['href'].encode('utf-8')
+                            item['url'] = article.a['href']
                             if self.base_url not in item['url']:
                                 continue
-                            item['title'] = 'Mohlo by sa vám páčiť - ' + article.a.find('div', {'class': 'e-info'}).getText(" ").encode('utf-8') 
-                            item['img'] = article.a.div.img['data-original'].encode('utf-8')
+                            item['title'] = 'Mohlo by sa vám páčiť - ' + article.a.find('div', {'class': 'e-info'}).getText(" ")
+                            item['title'] = " ".join(item['title'].split())
+                            item['img'] = article.a.div.img['data-original']
                             result.append(item)
 
-                    if section.div.h3.getText(" ").encode('utf-8') == 'Zo zákulisia':
+                    if section.div.h3.getText(" ") == 'Zo zákulisia':
                         for article in section.findAll('article'):
                             item = self.video_item()
-                            item['url'] = article.a['href'].encode('utf-8')
+                            item['url'] = article.a['href']
                             if self.base_url not in item['url']:
                                 continue
-                            item['title'] = 'Zo zákulisia - ' + article.a['title'].encode('utf-8')
-                            item['img'] = article.a.div.img['data-original'].encode('utf-8')                       
+                            item['title'] = 'Zo zákulisia - ' + article.a['title']
+                            item['title'] = " ".join(item['title'].split())
+                            item['img'] = article.a.div.img['data-original']
                             result.append(item)
         return result
 
@@ -252,8 +260,8 @@ class markizaContentProvider(ContentProvider):
         if relogin:
            httpdata = fetchUrl(loginurl, self.opener)
            token = re.search(r'name=\"_token_\" value=\"(\S+?)\">',httpdata).group(1)
-           logindata = urllib.urlencode({'email': self.username, 'password': self.password  , '_token_': token, '_do': 'content1-loginForm-form-submit' }) + '&login=Prihl%C3%A1si%C5%A5+sa'
-           req = urllib2.Request(loginurl, logindata)
+           logindata = urllib.parse.urlencode({'email': self.username, 'password': self.password  , '_token_': token, '_do': 'content1-loginForm-form-submit', 'login': 'Prihl%C3%A1si%C5%A5+sa' }).encode('utf-8')
+           req = urllib.request.Request(loginurl, logindata)
            httpdata = self.opener.open(req)
            
         httpdata = fetchUrl(item['url'], self.opener)
@@ -289,4 +297,3 @@ class markizaContentProvider(ContentProvider):
         for idx, item in enumerate(resolved):
            item['quality'] += 'p'
         return resolved
-
