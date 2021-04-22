@@ -141,7 +141,7 @@ class markizaContentProvider(ContentProvider):
         try:
            doc = read_page(url)
         except urllib.error.HTTPError:
-           xbmcgui.Dialog().ok('Error', 'CHYBA 404: STRÁNKA NEBOLA NÁJDENÁ', '', '')
+           xbmcgui.Dialog().ok('Error', 'CHYBA 404: STRÁNKA NEBOLA NÁJDENÁ')
            return
            
         if list_series:
@@ -216,14 +216,14 @@ class markizaContentProvider(ContentProvider):
         doc = read_page(item['url'])
         main = doc.find('main')
         if (not main.find('iframe')):
-           xbmcgui.Dialog().ok('Error', 'Platnost tohoto videa už vypršala', '', '')
+           xbmcgui.Dialog().ok('Error', 'Platnost tohoto videa už vypršala')
            return
         url = main.find('iframe')['src']
         httpdata = fetchUrl(url)
         httpdata = httpdata.replace("\r","").replace("\n","").replace("\t","")
         if '<title>Error</title>' in httpdata:
             error=re.search('<h2 class="e-title">(.*?)</h2>', httpdata).group(1) #Video nie je dostupné vo vašej krajine
-            xbmcgui.Dialog().ok('Error', error, '', '')
+            xbmcgui.Dialog().ok('Error', error)
             return
 
         url = re.search('\"HLS\":\[{\"src\":\"(.+?)\"', httpdata)
@@ -255,7 +255,7 @@ class markizaContentProvider(ContentProvider):
     def _resolve_live(self, item, relogin=False):
         resolved = []
         if not (self.username and self.password):
-            xbmcgui.Dialog().ok('Error', 'Nastavte prosím moja.markiza.sk konto', '', '')
+            xbmcgui.Dialog().ok('Error', 'Nastavte prosím moja.markiza.sk konto')
             return
         if relogin:
            httpdata = fetchUrl(loginurl, self.opener)
@@ -270,7 +270,7 @@ class markizaContentProvider(ContentProvider):
         httpdata = fetchUrl(url, self.opener)
         if '<iframe src=\"' not in httpdata:   #handle expired cookies
            if relogin:
-              xbmcgui.Dialog().ok('Error', 'Skontrolujte prihlasovacie údaje', '', '')
+              xbmcgui.Dialog().ok('Error', 'Skontrolujte prihlasovacie údaje')
               return 
            else:
               return self._resolve_live(item, relogin=True) 
@@ -280,7 +280,7 @@ class markizaContentProvider(ContentProvider):
         httpdata = fetchUrl(url,self.opener,referer) 
         if '<title>Error</title>' in httpdata:
             error=re.search('<h2 class="e-title">(.*?)</h2>', httpdata).group(1) #Video nie je dostupné vo vašej krajine
-            xbmcgui.Dialog().ok('Error', error, '', '')
+            xbmcgui.Dialog().ok('Error', error)
             return 
         url = re.search(r'\"src\":\"(\S+?)\"',httpdata).group(1).replace('\/','/') #https:\/\/cmesk-ott-live-sec.ssl.cdn.cra.cz
         httpdata = fetchUrl(url,self.opener,'https://media.cms.markiza.sk/')
