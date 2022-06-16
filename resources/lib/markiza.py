@@ -65,7 +65,13 @@ class markizaContentProvider(ContentProvider):
         self.init_urllib()
 
     def init_urllib(self):
-        opener = urllib.request.build_opener(self.cp)
+        # workaround insecure connection to moja.markiza.sk
+        ctx_no_secure = ssl.create_default_context()
+        ctx_no_secure.set_ciphers('HIGH:!DH:!aNULL')
+        ctx_no_secure.check_hostname = False
+        ctx_no_secure.verify_mode = ssl.CERT_NONE
+
+        opener = urllib.request.build_opener(self.cp, urllib.request.HTTPSHandler(context=ctx_no_secure))
         self.opener = opener
         urllib.request.install_opener(opener)
 
