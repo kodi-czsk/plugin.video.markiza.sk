@@ -33,7 +33,7 @@ __language__   = __addon__.getLocalizedString
 settings = {'downloads':__addon__.getSetting('downloads'),'quality':__addon__.getSetting('quality')}
 params = util.params()
 
-provider = markiza.markizaContentProvider(username=__addon__.getSetting('markiza_user'), password=__addon__.getSetting('markiza_pass'))
+provider = markiza.markizaContentProvider()
 
 class XBMCMarkizaContentProvider(xbmcprovider.XBMCMultiResolverContentProvider):
     def render_default(self, item):
