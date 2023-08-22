@@ -1,11 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <addon id="plugin.video.markiza.sk" 
 name="markiza.sk" provider-name="rywko" 
-version="1.4.2">
+version="1.5.4">
   <requires>
-    <import addon="xbmc.python" version="2.1.0" />
-    <import addon="script.module.dmd-czech.common" version="1.5.5"/>
-    <import addon="script.module.stream.resolver" version="1.6.24" />
+    <import addon="xbmc.python" version="3.0.0" />
+    <import addon="script.module.stream.resolver" version="1.7.2" />
   </requires>
   <extension library="default.py" point="xbmc.python.pluginsource" provides="video">
     <provides>video</provides>
@@ -14,10 +13,13 @@ version="1.4.2">
     <summary lang="en">markiza.sk</summary>
     <summary lang="cs">markiza.sk</summary>
     <summary lang="sk">markiza.sk</summary>
-    <description lang="en">Watch online TV archive from videoarchiv.markiza.sk</description>
-    <description lang="cs">Sledujte online TV archiv ze serveru videoarchiv.markiza.sk</description>
-    <description lang="sk">Sledujte online TV archív zo serveru videoarchiv.markiza.sk</description>
+    <description lang="en">Watch online Markiza TV online</description>
+    <description lang="cs">Sledujte živý přenos TV Markíza</description>
+    <description lang="sk">Sledujte živé vysielanie TV Markíza</description>
     <platform>all</platform>
     <source>https://github.com/kodi-czsk/plugin.video.markiza.sk</source>
+	<assets>
+            <icon>icon.png</icon>
+    </assets>
   </extension>
 </addon>

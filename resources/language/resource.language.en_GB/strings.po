@@ -1,0 +1,40 @@
+# Kodi Media Center language file
+# Addon Name: markiza.sk
+# Addon id: plugin.video.markiza.sk
+msgid ""
+msgstr ""
+
+"Language: en_GB\n"
+
+
+msgctxt "#30050"
+msgid "Video quality"
+msgstr ""
+
+msgctxt "#30051"
+msgid "Always ask"
+msgstr ""
+
+msgctxt "#30052"
+msgid "Best"
+msgstr ""
+
+msgctxt "#30053"
+msgid "Worst"
+msgstr ""
+
+msgctxt "#30054"
+msgid "720p"
+msgstr ""
+
+msgctxt "#30055"
+msgid "480p"
+msgstr ""
+
+msgctxt "#30056"
+msgid "360p"
+msgstr ""
+
+msgctxt "#30080"
+msgid "240p"
+msgstr ""
