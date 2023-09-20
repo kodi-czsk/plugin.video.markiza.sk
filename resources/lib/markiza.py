@@ -27,6 +27,7 @@ from datetime import date
 import xbmcgui
 import util
 from provider import ContentProvider
+from bs4 import BeautifulSoup, BeautifulStoneSoup
 
 
 _UserAgent_ = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0'
@@ -51,11 +52,14 @@ def fetchUrl(url, opener=None, ref=None):
         httpdata = resp.read().decode('utf-8')
         resp.close()
         return httpdata
+        
+def read_page(url):
+    return BeautifulSoup(fetchUrl(url), "html5lib")
 
 class markizaContentProvider(ContentProvider):
 
     def __init__(self, username=None, password=None, filter=None, tmp_dir='/tmp'):
-        ContentProvider.__init__(self, 'markiza.sk', 'https://videoarchiv.markiza.sk/', username, password, filter, tmp_dir)
+        ContentProvider.__init__(self, 'markiza.sk', 'https://www.markiza.sk/', username, password, filter, tmp_dir)
         self.cp = urllib.request.HTTPCookieProcessor(http.cookiejar.LWPCookieJar())
         self.init_urllib()
 
@@ -75,7 +79,10 @@ class markizaContentProvider(ContentProvider):
             
     def categories(self):
         result = []
- 
+        result.append(self.dir_item('Relácie a seriály A-Z', self.base_url + 'relacie'))
+        result.append(self.dir_item('Televízne noviny', self.base_url + 'relacie/televizne-noviny'))
+        result.append(self.dir_item('TOP relácie', self.base_url + 'relacie#top'))
+        result.append(self.dir_item('Najnovšie epizódy', self.base_url + 'relacie#latest'))
         item = self.video_item()
         item['title'] = 'Live Markiza'
         item['url'] = self.base_url + "live/1-markiza"
@@ -89,6 +96,11 @@ class markizaContentProvider(ContentProvider):
         item = self.video_item()
         item['title'] = 'Live Dajto'
         item['url'] = self.base_url + "live/2-dajto"
+        item['img'] = "DefaultVideo.png"
+        result.append(item)
+        item = self.video_item()
+        item['title'] = 'Live Krimi'
+        item['url'] = self.base_url + "live/22-krimi"
         item['img'] = "DefaultVideo.png"
         result.append(item)
         return result
@@ -108,7 +120,98 @@ class markizaContentProvider(ContentProvider):
 
     def resolve(self, item, captcha_cb=None, select_cb=None):
        item = item.copy()
-       result = self._resolve_live(item)
+       if 'markiza.sk/live/' in item['url']:
+           result = self._resolve_live(item)
+       else:
+           result = self._resolve_vod(item)
        if len(result) > 0 and select_cb:
            return select_cb(result)
        return result
+
+    def list(self, url):
+        self.info("list %s" % url)
+        if url.endswith('relacie'):
+            return self.list_show(url, list_series=True)
+        elif url.endswith('top'):
+            return self.list_top(url)
+        elif url.endswith('latest'):
+            return self.list_new(url)
+        return self.list_show(url, list_episodes=True)
+    
+    def list_top(self, url):
+        result = []
+        doc = read_page(url)
+        for article in doc.findAll('div', 'c-show-wrapper')[0].findAll('a', 'c-show'):
+                item = self.dir_item()
+                item['url'] = article['href']
+                item['title'] = article['data-tracking-tile-show-name']
+                item['img'] = article.div.img['data-src']
+                result.append(item)
+        return result
+    
+    def list_new(self, url):
+        result = []
+        doc = read_page(url)
+        for article in doc.findAll('div', 'c-show-wrapper')[1].findAll('a', 'c-show'):
+                item = self.dir_item()
+                item['url'] = article['href']
+                item['title'] = article['data-tracking-tile-show-name']
+                item['img'] = article.div.img['data-src']
+                result.append(item)
+        return result
+        
+    def list_show(self, url, list_series=False, list_episodes=False):
+        result = []
+        self.info("list_show %s"%(url))
+        print(('list_series: %s' % list_series))
+        print(('list_episodes: %s' % list_episodes))
+        try:
+           doc = read_page(url)
+        except urllib.error.HTTPError:
+           xbmcgui.Dialog().ok('Error', 'CHYBA 404: STRÁNKA NEBOLA NÁJDENÁ')
+           return
+           
+        if list_series:
+            for article in doc.findAll('div', 'c-show-wrapper')[2].findAll('a', 'c-show'):
+                item = self.dir_item()
+                item['url'] = article['href']
+                item['title'] = article['data-tracking-tile-show-name']
+                item['img'] = article.div.img['data-src']
+                result.append(item)
+                                       
+        if list_episodes:
+                for article in doc.findAll('article', 'c-article'):
+                    item = self.video_item()
+                    item['url'] = article.a['href']
+                    if url not in item['url']:
+                        continue
+                    item['title'] = article['data-tracking-tile-name'] 
+                    item['img'] = article.a.picture.source['data-srcset']
+                    result.append(item)
+                              
+        return result
+
+    def _resolve_vod(self, item):
+        resolved = []
+        doc = read_page(item['url'])
+        main = doc.find('main')
+        if (not main.find('iframe')):
+           xbmcgui.Dialog().ok('Error', 'Platnost tohoto videa už vypršala')
+           return
+        url = main.find('iframe')['data-src']
+        httpdata = fetchUrl(url)
+        httpdata = httpdata.replace("\r","").replace("\n","").replace("\t","")
+        if '<title>Error</title>' in httpdata:
+            error=re.search('<h2 class="e-title">(.*?)</h2>', httpdata).group(1) #Video nie je dostupné vo vašej krajine
+            xbmcgui.Dialog().ok('Error', error)
+            return
+
+        url = re.search('\"HLS\":\[{\"src\":\"(.+?)\"', httpdata)
+        url = url.group(1).replace('\/','/')
+         
+        item = self.video_item()
+        item['surl'] = item['title']
+        item['url'] = url 
+        resolved.append(item)    
+    
+        return resolved
