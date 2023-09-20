@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <addon id="plugin.video.markiza.sk" 
 name="markiza.sk" provider-name="rywko" 
-version="1.5.4">
+version="1.5.5">
   <requires>
     <import addon="xbmc.python" version="3.0.0" />
     <import addon="script.module.stream.resolver" version="1.7.2" />
