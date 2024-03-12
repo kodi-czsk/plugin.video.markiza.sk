@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <addon id="plugin.video.markiza.sk" 
-name="markiza.sk" provider-name="kodi-czs" 
+name="markiza.sk" provider-name="kodi-czsk" 
 version="1.5.6">
   <requires>
     <import addon="xbmc.python" version="3.0.0" />
