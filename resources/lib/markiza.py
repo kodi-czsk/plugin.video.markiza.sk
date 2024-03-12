@@ -110,7 +110,7 @@ class markizaContentProvider(ContentProvider):
         channel = item['url'].split('-')[-1]
         url = f'https://media.cms.markiza.sk/embed/{ channel }-live'
         httpdata = fetchUrl(url, self.opener)
-        url = re.findall('HLS.*?"src":"([^"]+)"', httpdata)[0]
+        url = re.findall('(?:HLS|sources).*?"src":"([^"]+)"', httpdata)[0]
         url = url.replace('\\', '')
         item = self.video_item()
         item['surl'] = item['title']
@@ -162,6 +162,8 @@ class markizaContentProvider(ContentProvider):
         
     def list_show(self, url, list_series=False, list_episodes=False):
         result = []
+        if list_episodes:
+           url+='/videa'
         self.info("list_show %s"%(url))
         print(('list_series: %s' % list_series))
         print(('list_episodes: %s' % list_episodes))
@@ -183,12 +185,17 @@ class markizaContentProvider(ContentProvider):
                 for article in doc.findAll('article', 'c-article'):
                     item = self.video_item()
                     item['url'] = article.a['href']
-                    if url not in item['url']:
+                    if 'markiza.sk/relacie/' in url and url.replace('/videa','') not in item['url']:
                         continue
                     item['title'] = article['data-tracking-tile-name'] 
                     item['img'] = article.a.picture.source['data-srcset']
                     result.append(item)
-                              
+                button = doc.findAll('button', 'c-button -outline')
+                if button:
+                   item = self.dir_item()
+                   item['url'] = button[0]['data-href']
+                   item['title'] = button[0].span.text
+                   result.append(item)
         return result
 
     def _resolve_vod(self, item):
@@ -198,7 +205,7 @@ class markizaContentProvider(ContentProvider):
         if (not main.find('iframe')):
            xbmcgui.Dialog().ok('Error', 'Platnost tohoto videa už vypršala')
            return
-        url = main.find('iframe')['data-src']
+        url = main.find('iframe')['src']
         httpdata = fetchUrl(url)
         httpdata = httpdata.replace("\r","").replace("\n","").replace("\t","")
         if '<title>Error</title>' in httpdata:
@@ -215,3 +222,4 @@ class markizaContentProvider(ContentProvider):
         resolved.append(item)    
     
         return resolved
+        
