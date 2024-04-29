@@ -1,3 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <settings>
+    <setting id="iptv.enabled" default="true" visible="false"/>
+    <setting id="iptv.channels_uri" default="plugin://plugin.video.markiza.sk/iptv/channels" visible="false"/>
+    <setting id="iptv.epg_uri" default="plugin://plugin.video.markiza.sk/iptv/epg" visible="false"/>
+	<category label="30100">
+<<<<<<< HEAD
+<<<<<<< HEAD
+		<setting label="30000" id="epgdays" type="slider" default="3" range="1,5" option="int" visible="true"/>
+=======
+		<setting label="30000" id="epgdays" type="slider" default="3" range="1,10" option="int" visible="true"/>
+>>>>>>> e8ca1a7 (podpora IPTV.merge)
+=======
+		<setting label="30000" id="epgdays" type="slider" default="3" range="1,10" option="int" visible="true"/>
+>>>>>>> 4a538bf (podpora pre iptv.merge)
+	</category>
 </settings>
