@@ -203,7 +203,7 @@ class markizaContentProvider(ContentProvider):
         doc = read_page(item['url'])
         main = doc.find('main')
         if (not main.find('iframe')):
-           xbmcgui.Dialog().ok('Error', 'Platnost tohoto videa už vypršala')
+           xbmcgui.Dialog().ok('Error', 'Platnosť tohoto videa už vypršala')
            return
         url = main.find('iframe')['src']
         httpdata = fetchUrl(url)
@@ -213,7 +213,7 @@ class markizaContentProvider(ContentProvider):
             xbmcgui.Dialog().ok('Error', error)
             return
 
-        url = re.search('\"HLS\":\[{\"src\":\"(.+?)\"', httpdata)
+        url = re.search('\"sources\":\[{\"src\":\"(.+?)\"', httpdata)
         url = url.group(1).replace('\/','/')
          
         item = self.video_item()
