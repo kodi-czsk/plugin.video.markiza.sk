@@ -86,22 +86,22 @@ class markizaContentProvider(ContentProvider):
         item = self.video_item()
         item['title'] = 'Live Markiza'
         item['url'] = self.base_url + "live/1-markiza"
-        item['img'] = "DefaultVideo.png"
+        item['img'] = "https://marhycz.github.io/picons/640/markiza.png"
         result.append(item)
         item = self.video_item()
         item['title'] = 'Live Doma'
         item['url'] = self.base_url + "live/3-doma"
-        item['img'] = "DefaultVideo.png"
+        item['img'] = "https://marhycz.github.io/picons/640/doma.png"
         result.append(item)
         item = self.video_item()
         item['title'] = 'Live Dajto'
         item['url'] = self.base_url + "live/2-dajto"
-        item['img'] = "DefaultVideo.png"
+        item['img'] = "https://marhycz.github.io/picons/640/dajto.png"
         result.append(item)
         item = self.video_item()
         item['title'] = 'Live Krimi'
         item['url'] = self.base_url + "live/22-krimi"
-        item['img'] = "DefaultVideo.png"
+        item['img'] = "https://upload.wikimedia.org/wikipedia/commons/0/0a/Logo_Mark%C3%ADza_KRIMI.png"
         result.append(item)
         return result
 

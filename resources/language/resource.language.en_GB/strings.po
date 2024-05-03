@@ -6,35 +6,10 @@ msgstr ""
 
 "Language: en_GB\n"
 
+msgctxt "#30000"
+msgid "Select Number of Days for EPG Retrieval"
+msgstr "Select Number of Days for EPG Retrieval"
 
-msgctxt "#30050"
-msgid "Video quality"
-msgstr ""
-
-msgctxt "#30051"
-msgid "Always ask"
-msgstr ""
-
-msgctxt "#30052"
-msgid "Best"
-msgstr ""
-
-msgctxt "#30053"
-msgid "Worst"
-msgstr ""
-
-msgctxt "#30054"
-msgid "720p"
-msgstr ""
-
-msgctxt "#30055"
-msgid "480p"
-msgstr ""
-
-msgctxt "#30056"
-msgid "360p"
-msgstr ""
-
-msgctxt "#30080"
-msgid "240p"
+msgctxt "#30100"
+msgid "IPTV merge"
 msgstr ""
