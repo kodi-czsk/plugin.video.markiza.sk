@@ -1,3 +1,5 @@
+[B]1.5.9:[/B]
+- oprava prehravania archivov
 [B]1.5.8:[/B]
 - oprava prehravania archivov
 [B]1.5.7:[/B]

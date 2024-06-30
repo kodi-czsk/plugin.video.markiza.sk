@@ -205,7 +205,7 @@ class markizaContentProvider(ContentProvider):
         if (not main.find('iframe')):
            xbmcgui.Dialog().ok('Error', 'Platnosť tohoto videa už vypršala')
            return
-        url = main.find('iframe')['src']
+        url = main.find('iframe')['data-src']
         httpdata = fetchUrl(url)
         httpdata = httpdata.replace("\r","").replace("\n","").replace("\t","")
         if '<title>Error</title>' in httpdata:
