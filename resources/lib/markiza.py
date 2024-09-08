@@ -103,6 +103,11 @@ class markizaContentProvider(ContentProvider):
         item['url'] = self.base_url + "live/22-krimi"
         item['img'] = "https://upload.wikimedia.org/wikipedia/commons/0/0a/Logo_Mark%C3%ADza_KRIMI.png"
         result.append(item)
+        item = self.video_item()
+        item['title'] = 'Live Klasik'
+        item['url'] = self.base_url + "live/44-klasik"
+        item['img'] = "https://www.tv-archiv.sk/images/tv/logo/markiza-klasik.jpg"
+        result.append(item)
         return result
 
     def _resolve_live(self, item):
