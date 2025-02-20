@@ -12,7 +12,7 @@ import time
 import json
 import urllib.request, urllib.parse, urllib.error
 import datetime
-TV_SMS_CZ_IDS = "8,225,683,15402"#markiza,doma,dajto,krimi
+TV_SMS_CZ_IDS = "8,225,683,15402,15568"#markiza,doma,dajto,krimi,klasik
 file_name = "epg.xml"
 update = 0
 
@@ -202,6 +202,8 @@ def get_sms_epg(days=3,days_back=1):
                     channel='Live Markiza'
                 if channel=='15402-markiza-krimi':
                     channel='Live Krimi'
+                if channel=='15568-markiza-klasik':
+                    channel='Live Klasik'					
                 if not channel in json_programs:
                     json_programs[channel]=[]
                 #"start": "20240401055500 +0200",
